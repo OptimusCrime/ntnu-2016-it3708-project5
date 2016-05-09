@@ -235,11 +235,16 @@ public class Evolver {
      */
 
     public void evolve() {
+
+        //////////////////////
+        //  Adult selection //
+        //////////////////////
+
         // Combine P and Q in R
         ArrayList<Individual> population = new ArrayList<>(parentPool);
         population.addAll(childPool);
 
-        // Select who survives into adulthood
+        // Sort population
         this.nonDominatedSort(population);
 
         // New population
@@ -274,6 +279,10 @@ public class Evolver {
         // Add the remaining individuals from the front members
         newPopulation.addAll(remainingMembers.subList(0,
                 (Settings.populationSize - newPopulation.size())));
+
+        ///////////////////////
+        //  Parent selection //
+        ///////////////////////
 
         System.out.println(newPopulation.size());
 
