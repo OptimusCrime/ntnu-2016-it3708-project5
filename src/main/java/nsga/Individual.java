@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 public class Individual {
 
     /**
-        Fields
+     * Fields
      */
 
     private static double mutation = 0.3;
@@ -37,7 +37,7 @@ public class Individual {
     private Double crowdingDistance;
 
     /**
-        Constructors
+     * Constructors
      */
 
     public Individual() {
@@ -62,7 +62,7 @@ public class Individual {
     }
 
     /**
-        Calculate objective functions
+     * Calculate objective functions
      */
 
     public double getDistance() {
@@ -94,7 +94,7 @@ public class Individual {
     }
 
     /**
-        Pareto Methods
+     * Pareto Methods
      */
 
     public int getParetoRank() {
@@ -141,12 +141,13 @@ public class Individual {
     public void increaseDominatedBy() {
         this.dominatedBy++;
     }
+
     public void decreaseDominatedBy() {
         this.dominatedBy--;
     }
 
     /**
-        Genetic operators
+     * Genetic operators
      */
 
     public void mutate() {
@@ -215,7 +216,7 @@ public class Individual {
     }
 
     /**
-        Helpers
+     * Helpers
      */
 
     public void reset() {
