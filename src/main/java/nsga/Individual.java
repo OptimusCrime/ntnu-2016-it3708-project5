@@ -42,6 +42,7 @@ public class Individual {
 
     public Individual() {
         this.dominatedIndividuals = new ArrayList<Individual>();
+        this.crowdingDistance = 0.0;
 
         // Initialize static random
         if (this.random == null) {
@@ -52,6 +53,7 @@ public class Individual {
 
     public Individual(int[] dna) {
         this.dominatedIndividuals = new ArrayList<Individual>();
+        this.crowdingDistance = 0.0;
 
         // Initialize static random
         if (this.random == null) {
@@ -223,7 +225,7 @@ public class Individual {
         this.distance = null;
         this.cost = null;
         this.paretoRank = null;
-        this.crowdingDistance = null;
+        this.crowdingDistance = 0.0;
         this.dominatedIndividuals = new ArrayList<>();
         this.dominatedBy = 0;
     }
