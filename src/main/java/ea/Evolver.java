@@ -95,6 +95,7 @@ public class Evolver {
         }
 
         // Create the first front
+        paretoFronts = new ArrayList<>();
         paretoFronts.add(new ParetoFront(1));
 
         // Loop the population
@@ -316,8 +317,10 @@ public class Evolver {
     private void logBestIndividual() {
         // Get the first individual
         ArrayList<Individual> bestIndividuals = new ArrayList<>(this.paretoFronts.get(0).getAllMembers());
-        Collections.sort(bestIndividuals, Sorter.crowdingDistanceComparator());
-        bestIndividual = bestIndividuals.get(0);
+        //Collections.sort(bestIndividuals, Sorter.crowdingDistanceComparator());
+        //bestIndividual = bestIndividuals.get(0);
+
+        bestIndividual = this.parentPool.get(0);
 
         for (Individual individual : this.parentPool) {
             // Check if this individual is better than best
