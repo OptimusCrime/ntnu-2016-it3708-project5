@@ -8,6 +8,8 @@ import sort.Sorter;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
+import java.util.Set;
 
 public class Evolver {
 
@@ -17,6 +19,8 @@ public class Evolver {
     private ArrayList<ParetoFront> paretoFronts;
     private Individual bestIndividual;
 
+    private Random random;
+
     /**
      * Constructor
      */
@@ -24,6 +28,7 @@ public class Evolver {
     public Evolver() {
         // Set current generation
         this.generation = 0;
+        this.random = new Random();
 
         // Create empty child and parent pool
         childPool = new ArrayList<>();
@@ -82,13 +87,17 @@ public class Evolver {
      */
 
     private void nonDominatedSort(ArrayList<Individual> population) {
+
+        // Resets dominated by and number of fronts it is dominated by
+        for(Individual person : population) {
+            person.reset();
+        }
+
         // Create the first front
         paretoFronts.add(new ParetoFront(1));
 
         // Loop the population
         for (Individual current : population) {
-            // Resets dominated by and number of fronts it is dominated by
-            current.reset();
 
             // Loop again
             for (Individual other : population) {
@@ -149,37 +158,44 @@ public class Evolver {
      */
 
     private void parentSelectionAndBreeding() {
-        /*
-        // Select breeders and breed children until child population is filled
-        this.childPool = new ArrayList<>();
 
-        // Loop until we have filled up the child pool
-        while (this.childPool.size() < Settings.populationSize) {
-            // Create new list with the remaining parents
-            ArrayList<Individual> parents = new ArrayList<>(this.parentPool);
+        ArrayList<Individual> potentialParents = new ArrayList<>(this.parentPool);
+        ArrayList<Individual> children = new ArrayList<>();
 
-            // Pick the first parent
-            Individual parent1 = ParetoHelper.crowdingDistanceTournamentSelection(parents, Settings.tournamentSize, Settings.e);
-            parents.remove(parent1);
+        while(children.size() < Settings.populationSize) {
+            Individual mother = selectParent(potentialParents);
+            Individual father = selectParent(potentialParents);
 
-            // Pick the second parent
-            Individual parent2 = ParetoHelper.crowdingDistanceTournamentSelection(parents, Settings.tournamentSize, Settings.e);
+            // Create offspring
+            Individual[] offspring = mother.crossover(father);
 
-            // Breed
-            Individual[] offspring = parent1.breed(parent2);
+            // Mutate offspring
+            offspring[0].mutate();
+            offspring[1].mutate();
 
-            // Check if we should create one or two children
-            if ((this.childPool.size() + 2) > Settings.populationSize) {
-                // Create one child
-                this.childPool.add(offspring[0]);
-            }
-            else {
-                // Create two children
-                this.childPool.add(offspring[0]);
-                this.childPool.add(offspring[1]);
-            }
+            // Add to child pool
+            children.add(offspring[0]);
+            children.add(offspring[1]);
+
         }
-        */
+        this.childPool = children;
+    }
+
+    private Individual selectParent(ArrayList<Individual> parents) {
+        // TODO: In place ?
+        ArrayList<Individual> candidates = new ArrayList<>(parents);
+        Collections.shuffle(candidates);
+
+        ArrayList<Individual> tournament = new ArrayList<>(candidates.subList(0, Math.min(parents.size(), Settings.tournamentSize)));
+
+        if(Settings.e <= random.nextDouble()) {
+            return tournament.get(0);
+        } else {
+            Collections.sort(tournament, Sorter.crowdingDistanceComparator());
+            return tournament.get(0);
+        }
+
+
     }
 
     private void crowdingDistanceAssignment(ArrayList<Individual> members) {
@@ -188,8 +204,8 @@ public class Evolver {
         Collections.sort(distanceSorted, Sorter.distanceComparator());
 
         // Set inf to extremals - for good distribution
-        distanceSorted.get(0).setCrowdingDistance(Double.POSITIVE_INFINITY);
-        distanceSorted.get(distanceSorted.size()-1).setCrowdingDistance(Double.POSITIVE_INFINITY);
+        distanceSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
+        distanceSorted.get(distanceSorted.size()-1).setCrowdingDistance(Double.MAX_VALUE);
 
         double minDistance = distanceSorted.get(0).getDistance();
         double maxDistance = distanceSorted.get(distanceSorted.size()-1).getDistance();
@@ -211,8 +227,8 @@ public class Evolver {
         Collections.sort(distanceSorted, Sorter.costComparator());
 
         // Set inf to extremals - for good distribution
-        costSorted.get(0).setCrowdingDistance(Double.POSITIVE_INFINITY);
-        costSorted.get(costSorted.size()-1).setCrowdingDistance(Double.POSITIVE_INFINITY);
+        costSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
+        costSorted.get(costSorted.size()-1).setCrowdingDistance(Double.MAX_VALUE);
 
         double minCost = costSorted.get(0).getCost();
         double maxCost = costSorted.get(costSorted.size()-1).getCost();
@@ -270,15 +286,21 @@ public class Evolver {
         // Get the members that populates the remaining space in the new population
         ArrayList<Individual> remainingMembers = paretoFronts.get(counter).getAllMembers();
 
-        // Assign crowding distance to the remaining members
-        this.crowdingDistanceAssignment(remainingMembers);
+        // Make sure to only add remaining members if there are any members in this front
+        if (remainingMembers.size() > 0) {
+            // Assign crowding distance to the remaining members
+            this.crowdingDistanceAssignment(remainingMembers);
 
-        // Sort the remaining members
-        Collections.sort(remainingMembers, Sorter.crowdingDistanceComparator());
+            // Sort the remaining members
+            Collections.sort(remainingMembers, Sorter.crowdingDistanceComparator());
 
-        // Add the remaining individuals from the front members
-        newPopulation.addAll(remainingMembers.subList(0,
-                (Settings.populationSize - newPopulation.size())));
+            // Add the remaining individuals from the front members
+            newPopulation.addAll(remainingMembers.subList(0,
+                    (Settings.populationSize - newPopulation.size())));
+        }
+
+
+        this.parentPool = newPopulation;
 
         ///////////////////////
         //  Parent selection //
@@ -302,7 +324,9 @@ public class Evolver {
 
     private void logBestIndividual() {
         // Get the first individual
-        bestIndividual = this.parentPool.get(0);
+        ArrayList<Individual> bestIndividuals = new ArrayList<>(this.paretoFronts.get(0).getAllMembers());
+        Collections.sort(bestIndividuals, Sorter.crowdingDistanceComparator());
+        bestIndividual = bestIndividuals.get(0);
 
         for (Individual individual : this.parentPool) {
             // Check if this individual is better than best
