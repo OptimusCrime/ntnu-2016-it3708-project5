@@ -104,7 +104,6 @@ public class Evolver {
             }
 
             if (current.getDominatedBy() == 0) {
-                System.out.println("NOT DOMINATED!");
                 // Set rank to individual
                 current.setParetoRank(1);
 
@@ -112,8 +111,6 @@ public class Evolver {
                 paretoFronts.get(0).addMember(current);
             }
         }
-
-        System.out.println("SIZE: " + paretoFronts.get(0).getSize());
 
         // Set the front counter
         int i = 1;

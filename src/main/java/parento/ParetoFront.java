@@ -35,7 +35,6 @@ public class ParetoFront {
 
     public void addMember(Individual individual) {
         // Add this individual to the front
-        System.out.println("Call add member!!!");
         members.add(individual);
     }
 
