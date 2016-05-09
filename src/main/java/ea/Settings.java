@@ -1,7 +1,7 @@
 package ea;
 
 public class Settings {
-    public static int populationSize = 500;
+    public static int populationSize = 21;
     public static double crossover = 0.8;
     public static double mutation = 0.2;
     public static int tournamentSize = 25;

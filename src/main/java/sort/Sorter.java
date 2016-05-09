@@ -64,8 +64,11 @@ public class Sorter {
                     if (one.getParetoRank() < two.getParetoRank()) {
                         return -1;
                     }
-                    else {
+                    else if (one.getParetoRank() > two.getParetoRank()) {
                         return 1;
+                    }
+                    else {
+                        return 0;
                     }
                 }
             }
