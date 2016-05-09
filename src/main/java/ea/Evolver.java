@@ -38,6 +38,7 @@ public class Evolver {
 
     /**
      * Main method
+     *
      * @param args From sys
      */
 
@@ -89,7 +90,7 @@ public class Evolver {
     private void nonDominatedSort(ArrayList<Individual> population) {
 
         // Resets dominated by and number of fronts it is dominated by
-        for(Individual person : population) {
+        for (Individual person : population) {
             person.reset();
         }
 
@@ -105,8 +106,7 @@ public class Evolver {
                 if (current != other) {
                     if (current.dominates(other)) {
                         current.addDominatedIndividuals(other);
-                    }
-                    else if (other.dominates(current)) {
+                    } else if (other.dominates(current)) {
                         current.increaseDominatedBy();
                     }
                 }
@@ -162,7 +162,7 @@ public class Evolver {
         ArrayList<Individual> potentialParents = new ArrayList<>(this.parentPool);
         ArrayList<Individual> children = new ArrayList<>();
 
-        while(children.size() < Settings.populationSize) {
+        while (children.size() < Settings.populationSize) {
             Individual mother = selectParent(potentialParents);
             Individual father = selectParent(potentialParents);
 
@@ -188,7 +188,7 @@ public class Evolver {
 
         ArrayList<Individual> tournament = new ArrayList<>(candidates.subList(0, Math.min(parents.size(), Settings.tournamentSize)));
 
-        if(Settings.e <= random.nextDouble()) {
+        if (Settings.e <= random.nextDouble()) {
             return tournament.get(0);
         } else {
             Collections.sort(tournament, Sorter.crowdingDistanceComparator());
@@ -205,15 +205,15 @@ public class Evolver {
 
         // Set inf to extremals - for good distribution
         distanceSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
-        distanceSorted.get(distanceSorted.size()-1).setCrowdingDistance(Double.MAX_VALUE);
+        distanceSorted.get(distanceSorted.size() - 1).setCrowdingDistance(Double.MAX_VALUE);
 
         double minDistance = distanceSorted.get(0).getDistance();
-        double maxDistance = distanceSorted.get(distanceSorted.size()-1).getDistance();
+        double maxDistance = distanceSorted.get(distanceSorted.size() - 1).getDistance();
 
 
-        for(int i = 1; i < distanceSorted.size() - 1; i++) {
+        for (int i = 1; i < distanceSorted.size() - 1; i++) {
             // Get neighbour values
-            double previous = distanceSorted.get(i-1).getDistance();
+            double previous = distanceSorted.get(i - 1).getDistance();
             double next = distanceSorted.get(i + 1).getDistance();
             double currentCrowdingDistance = distanceSorted.get(i).getCrowdingDistance();
 
@@ -228,14 +228,14 @@ public class Evolver {
 
         // Set inf to extremals - for good distribution
         costSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
-        costSorted.get(costSorted.size()-1).setCrowdingDistance(Double.MAX_VALUE);
+        costSorted.get(costSorted.size() - 1).setCrowdingDistance(Double.MAX_VALUE);
 
         double minCost = costSorted.get(0).getCost();
-        double maxCost = costSorted.get(costSorted.size()-1).getCost();
+        double maxCost = costSorted.get(costSorted.size() - 1).getCost();
 
-        for(int i = 1; i < costSorted.size() - 1; i++) {
+        for (int i = 1; i < costSorted.size() - 1; i++) {
             // Get neighbour values
-            double previous = costSorted.get(i-1).getCost();
+            double previous = costSorted.get(i - 1).getCost();
             double next = costSorted.get(i + 1).getCost();
 
             double currentCrowdingDistance = costSorted.get(i).getCrowdingDistance();
@@ -283,23 +283,14 @@ public class Evolver {
             counter++;
         }
 
-        // Get the members that populates the remaining space in the new population
-        ArrayList<Individual> remainingMembers = paretoFronts.get(counter).getAllMembers();
+        // Assign crowding distance and Sord the remaining members
+        this.crowdingDistanceAssignment(paretoFronts.get(counter).getAllMembers());
+        Collections.sort(paretoFronts.get(counter).getAllMembers(), Sorter.crowdingDistanceComparator());
 
-        // Make sure to only add remaining members if there are any members in this front
-        if (remainingMembers.size() > 0) {
-            // Assign crowding distance to the remaining members
-            this.crowdingDistanceAssignment(remainingMembers);
+        // Add the remaining individuals from the front members
+        newPopulation.addAll(paretoFronts.get(counter).getAllMembers().subList(0, (Settings.populationSize - newPopulation.size())));
 
-            // Sort the remaining members
-            Collections.sort(remainingMembers, Sorter.crowdingDistanceComparator());
-
-            // Add the remaining individuals from the front members
-            newPopulation.addAll(remainingMembers.subList(0,
-                    (Settings.populationSize - newPopulation.size())));
-        }
-
-
+        // Set new population as parents
         this.parentPool = newPopulation;
 
         ///////////////////////

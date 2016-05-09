@@ -3,10 +3,7 @@ package nsga;
 import com.sun.scenario.Settings;
 import parser.Map;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
@@ -277,5 +274,13 @@ public class Individual {
             this.route[counter] = citiId;
             counter++;
         }
+    }
+
+    /**
+     * toString
+     */
+
+    public String toString(){
+        return "Distance: " + this.getDistance() + " Cost: " + this.getCost() + " DNA: " + Arrays.toString(this.getRoute());
     }
 }
