@@ -1,8 +1,10 @@
 package ea;
 
 import nsga.Individual;
-import parento.ParentoFront;
+import parento.ParetoFront;
+import parser.Map;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Evolver {
@@ -10,6 +12,7 @@ public class Evolver {
     private int generation;
     private ArrayList<Individual> childPool;
     private ArrayList<Individual> parentPool;
+    private ArrayList<ParetoFront> paretoFronts;
     private Individual bestIndividual;
 
     /**
@@ -23,6 +26,7 @@ public class Evolver {
         // Create empty child and parent pool
         childPool = new ArrayList<>();
         parentPool = new ArrayList<>();
+        paretoFronts = new ArrayList<>();
     }
 
     /**
@@ -31,6 +35,8 @@ public class Evolver {
      */
 
     public static void main(String[] args) {
+        Map.getInstance();
+
         Evolver e = new Evolver();
         e.initialize();
         e.solve();
@@ -50,6 +56,8 @@ public class Evolver {
         for (int i = 0; i < Settings.populationSize; i++) {
             parentPool.add(new Individual());
         }
+
+        System.out.println("Init done");
     }
 
     /**
@@ -59,6 +67,7 @@ public class Evolver {
     public void solve() {
         // Run n generations
         while (this.generation < Settings.maxGeneration) {
+            System.out.println("Generation " + this.generation);
             // Evolve the current generation
             this.evolve();
 
@@ -71,36 +80,65 @@ public class Evolver {
      * Adult selection
      */
 
-    private void adultSelection() {
-        // Combine population Q + P = R
-        ArrayList<Individual> population = new ArrayList<>();
-        population.addAll(childPool);
+    private void nonDominatedSort(ArrayList<Individual> population) {
+        // Create the first front
+        paretoFronts.add(new ParetoFront(1));
 
-        // Divide into pareto fronts
-        ArrayList<ParentoFront> nonDominatedFronts = rankParetoSort(population);
+        // Loop the population
+        for (Individual current : population) {
+            // Resets dominated by and number of fronts it is dominated by
+            current.reset();
 
-        // Clean the adult pool
-        parentPool = new ArrayList<>();
+            // Loop again
+            for (Individual other : population) {
+                // Filter out self
+                if (current != other) {
+                    if (current.dominates(other)) {
+                        current.addDominatedIndividuals(other);
+                    }
+                    else {
+                        current.increaseDominatedBy();
+                    }
+                }
+            }
 
-        // Parento pointer number
-        int paretoFrontPointer = 0;
+            if (current.getDominatedBy() == 0) {
+                // Set rank to individual
+                current.setParetoRank(1);
 
-        // Loop until we have gone through all the adults
-        while ((parentPool.size() + nonDominatedFronts.get(paretoFrontPointer).getSize()) < Settings.populationSize)) {
-            // Get best front
-            ParentoFront front = nonDominatedFronts.get(paretoFrontPointer);
-
-            // Add front members to population
-            parentPool.addAll(front.getAllMembers());
-
-            // Increment pointer
-            paretoFrontPointer++;
+                // Add to first front
+                paretoFronts.get(0).addMember(current);
+            }
         }
 
-        // Add parents from last front if required, these compete with crowding distance
-        int k = Settings.populationSize - parentPool.size();
-        if (k > 0) {
-            parentPool.addAll(nonDominatedFronts.get(paretoFrontPointer).getNBestByCrowdingDistance(k));
+        // Set the front counter
+        int i = 1;
+
+        // Loop until we have populated all the fronts
+        while (paretoFronts.get(i - 1).getSize() > 0) {
+            System.out.println("Mothercuker");
+            ArrayList<Individual> frontMembers = new ArrayList<>();
+
+            for (Individual current : paretoFronts.get(i - 1).getAllMembers()) {
+                for (Individual other : current.getDominatedIndividuals()) {
+                    other.decreaseDominatedBy();
+
+                    if (other.getDominatedBy() == 0) {
+                        other.setParetoRank(i + 1);
+                        frontMembers.add(other);
+                    }
+                }
+            }
+
+            // Increase the front number here
+            i++;
+
+            // Create a new empty front
+            ParetoFront newFront = new ParetoFront(i);
+            newFront.addAll(frontMembers);
+
+            // Add to fronts
+            paretoFronts.add(newFront);
         }
     }
 
@@ -109,6 +147,7 @@ public class Evolver {
      */
 
     private void parentSelectionAndBreeding() {
+        /*
         // Select breeders and breed children until child population is filled
         this.childPool = new ArrayList<>();
 
@@ -138,6 +177,12 @@ public class Evolver {
                 this.childPool.add(offspring[1]);
             }
         }
+        */
+    }
+
+    private void crodingDistanceAssignment(ArrayList<Individual> members) {
+        // DISTANCE
+
     }
 
     /**
@@ -145,8 +190,35 @@ public class Evolver {
      */
 
     public void evolve() {
+        // Combine P and Q in R
+        ArrayList<Individual> population = new ArrayList<>(parentPool);
+        population.addAll(childPool);
+
         // Select who survives into adulthood
-        this.adultSelection();
+        this.nonDominatedSort(population);
+
+        for (ParetoFront front : paretoFronts) {
+            System.out.println("Hello world" + front.getIndex());
+            for (Individual individual : front.getAllMembers()) {
+                System.out.println(individual.getParetoRank());
+            }
+        }
+
+        // New population
+        ArrayList<Individual> newPopulation = new ArrayList<>();
+        int counter = 0;
+
+        // Loop until we have derp
+        while ((newPopulation.size() + paretoFronts.get(counter).getSize()) < Settings.populationSize) {
+
+            // Get the members of this fronts
+            ArrayList<Individual> paretoMembers = paretoFronts.get(counter).getAllMembers();
+
+            this.crodingDistanceAssignment(paretoMembers);
+
+            // Add the members to the new population
+            newPopulation.addAll(paretoMembers);
+        }
 
         // Log the best individual
         this.logBestIndividual();

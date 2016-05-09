@@ -67,6 +67,7 @@ public class Individual {
 
     public double getDistance() {
         if (this.distance == null) {
+            this.distance = 0.0;
 
             // Accumulate distances
             for (int i = 1; i < this.route.length; i++) {
@@ -80,6 +81,7 @@ public class Individual {
 
     public double getCost() {
         if (this.cost == null) {
+            this.cost = 0.0;
 
             // Accumulate costs
             for (int i = 1; i < this.route.length; i++) {
@@ -124,8 +126,8 @@ public class Individual {
         return dominatedIndividuals;
     }
 
-    public void setDominatedIndividuals(ArrayList<Individual> dominatedIndividuals) {
-        this.dominatedIndividuals = dominatedIndividuals;
+    public void addDominatedIndividuals(Individual individual) {
+        this.dominatedIndividuals.add(individual);
     }
 
     public int getDominatedBy() {
@@ -134,6 +136,13 @@ public class Individual {
 
     public void setDominatedBy(int dominatedBy) {
         this.dominatedBy = dominatedBy;
+    }
+
+    public void increaseDominatedBy() {
+        this.dominatedBy++;
+    }
+    public void decreaseDominatedBy() {
+        this.dominatedBy--;
     }
 
     /**
