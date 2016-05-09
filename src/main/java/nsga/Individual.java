@@ -114,7 +114,7 @@ public class Individual {
     }
 
     public boolean dominates(Individual other) {
-        int dominate = (dominatesDistance(other.getDistance()) + dominatesCost(other.getCost()));
+        int dominate = dominatesDistance(other.getDistance()) + dominatesCost(other.getCost());
         return dominate > 0;
     }
 
@@ -210,6 +210,11 @@ public class Individual {
 
     }
 
+    public void resetDomination() {
+        this.dominatedBy = 0;
+        this.dominatedIndividuals = new ArrayList<>();
+    }
+
     /**
      * Helpers
      */
@@ -219,7 +224,7 @@ public class Individual {
         this.cost = null;
         this.paretoRank = null;
         this.crowdingDistance = null;
-        this.dominatedIndividuals = new ArrayList<Individual>();
+        this.dominatedIndividuals = new ArrayList<>();
         this.dominatedBy = 0;
     }
 
