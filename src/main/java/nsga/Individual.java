@@ -3,6 +3,7 @@ package nsga;
 import com.sun.scenario.Settings;
 import parser.Map;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -15,7 +16,7 @@ import java.util.stream.Stream;
  */
 public class Individual {
 
-    /*
+    /**
         Fields
      */
 
@@ -25,6 +26,9 @@ public class Individual {
 
     // Shared random
     private static Random random;
+    // Domination counts
+    private ArrayList<Individual> dominatedIndividuals;
+    private int dominatedBy;
 
     private int[] route;
     private Double distance;
@@ -32,11 +36,14 @@ public class Individual {
     private Integer paretoRank;
     private Double crowdingDistance;
 
-    /*
+    /**
         Constructors
      */
 
     public Individual() {
+        this.dominatedIndividuals = new ArrayList<Individual>();
+
+        // Initialize static random
         if (this.random == null) {
             this.random = new Random();
         }
@@ -44,6 +51,9 @@ public class Individual {
     }
 
     public Individual(int[] dna) {
+        this.dominatedIndividuals = new ArrayList<Individual>();
+
+        // Initialize static random
         if (this.random == null) {
             this.random = new Random();
         }
@@ -51,7 +61,7 @@ public class Individual {
         this.route = dna;
     }
 
-    /*
+    /**
         Calculate objective functions
      */
 
@@ -81,7 +91,7 @@ public class Individual {
         return this.cost;
     }
 
-    /*
+    /**
         Pareto Methods
      */
 
@@ -110,7 +120,23 @@ public class Individual {
         return this.route;
     }
 
-    /*
+    public ArrayList<Individual> getDominatedIndividuals() {
+        return dominatedIndividuals;
+    }
+
+    public void setDominatedIndividuals(ArrayList<Individual> dominatedIndividuals) {
+        this.dominatedIndividuals = dominatedIndividuals;
+    }
+
+    public int getDominatedBy() {
+        return dominatedBy;
+    }
+
+    public void setDominatedBy(int dominatedBy) {
+        this.dominatedBy = dominatedBy;
+    }
+
+    /**
         Genetic operators
      */
 
@@ -174,15 +200,17 @@ public class Individual {
 
     }
 
-    /*
+    /**
         Helpers
      */
 
-    private void reset() {
+    public void reset() {
         this.distance = null;
         this.cost = null;
         this.paretoRank = null;
         this.crowdingDistance = null;
+        this.dominatedIndividuals = new ArrayList<Individual>();
+        this.dominatedBy = 0;
     }
 
     private int[] cleanupCrossover(int[] dirty, int change, int to, int excludeIndex) {
@@ -236,5 +264,4 @@ public class Individual {
             counter++;
         }
     }
-
 }
