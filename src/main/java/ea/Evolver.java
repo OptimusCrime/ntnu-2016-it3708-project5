@@ -3,9 +3,11 @@ package ea;
 import nsga.Individual;
 import parento.ParetoFront;
 import parser.Map;
+import sort.Sorter;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Evolver {
 
@@ -35,6 +37,7 @@ public class Evolver {
      */
 
     public static void main(String[] args) {
+        // Initialize Map Parsing
         Map.getInstance();
 
         Evolver e = new Evolver();
@@ -91,18 +94,16 @@ public class Evolver {
 
             // Loop again
             for (Individual other : population) {
-                // Filter out self
-                if (current != other) {
-                    if (current.dominates(other)) {
-                        current.addDominatedIndividuals(other);
-                    }
-                    else {
-                        current.increaseDominatedBy();
-                    }
+                if (current.dominates(other)) {
+                    current.addDominatedIndividuals(other);
+                }
+                else {
+                    current.increaseDominatedBy();
                 }
             }
 
             if (current.getDominatedBy() == 0) {
+                System.out.println("NOT DOMINATED!");
                 // Set rank to individual
                 current.setParetoRank(1);
 
@@ -110,6 +111,8 @@ public class Evolver {
                 paretoFronts.get(0).addMember(current);
             }
         }
+
+        System.out.println("SIZE: " + paretoFronts.get(0).getSize());
 
         // Set the front counter
         int i = 1;
@@ -180,8 +183,51 @@ public class Evolver {
         */
     }
 
-    private void crodingDistanceAssignment(ArrayList<Individual> members) {
+    private void crowdingDistanceAssignment(ArrayList<Individual> members) {
         // DISTANCE
+        ArrayList<Individual> distanceSorted = new ArrayList<Individual>(members);
+        Collections.sort(distanceSorted, Sorter.distanceComparator());
+
+        // Set inf to extremals - for good distribution
+        distanceSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
+        distanceSorted.get(distanceSorted.size()-1).setCrowdingDistance(Double.MAX_VALUE);
+
+        double minDistance = distanceSorted.get(0).getDistance();
+        double maxDistance = distanceSorted.get(distanceSorted.size()-1).getDistance();
+
+
+        for(int i = 1; i < distanceSorted.size() - 1; i++) {
+            // Get neighbour values
+            double previous = distanceSorted.get(i-1).getDistance();
+            double next = distanceSorted.get(i + 1).getDistance();
+            double currentCrowdingDistance = distanceSorted.get(i).getCrowdingDistance();
+
+            double distanceCrowdingDistance = (next - previous) / (maxDistance - minDistance);
+            distanceSorted.get(i).setCrowdingDistance(distanceCrowdingDistance);
+        }
+
+
+        // COST
+        ArrayList<Individual> costSorted = new ArrayList<Individual>(members);
+        Collections.sort(distanceSorted, Sorter.costComparator());
+
+        // Set inf to extremals - for good distribution
+        costSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
+        costSorted.get(costSorted.size()-1).setCrowdingDistance(Double.MAX_VALUE);
+
+        double minCost = costSorted.get(0).getCost();
+        double maxCost = costSorted.get(costSorted.size()-1).getCost();
+
+        for(int i = 1; i < costSorted.size() - 1; i++) {
+            // Get neighbour values
+            double previous = costSorted.get(i-1).getCost();
+            double next = costSorted.get(i + 1).getCost();
+
+            double currentCrowdingDistance = costSorted.get(i).getCrowdingDistance();
+
+            double costCrowdinDistance = currentCrowdingDistance + ((next - previous) / (maxDistance - minDistance));
+            costSorted.get(i).setCrowdingDistance(costCrowdinDistance);
+        }
 
     }
 
@@ -214,7 +260,7 @@ public class Evolver {
             // Get the members of this fronts
             ArrayList<Individual> paretoMembers = paretoFronts.get(counter).getAllMembers();
 
-            this.crodingDistanceAssignment(paretoMembers);
+            this.crowdingDistanceAssignment(paretoMembers);
 
             // Add the members to the new population
             newPopulation.addAll(paretoMembers);
