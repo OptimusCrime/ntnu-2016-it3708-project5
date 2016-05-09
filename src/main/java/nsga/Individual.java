@@ -11,9 +11,6 @@ import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
-/**
- * Created by krekle on 09/05/16.
- */
 public class Individual {
 
     /**

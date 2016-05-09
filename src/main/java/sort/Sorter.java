@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-/**
- * Created by krekle on 09/05/16.
- */
 public class Sorter {
 
 
