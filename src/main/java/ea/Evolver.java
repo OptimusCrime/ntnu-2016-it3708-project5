@@ -183,13 +183,13 @@ public class Evolver {
     }
 
     private void crowdingDistanceAssignment(ArrayList<Individual> members) {
-        // DISTANCE
+        // -- DISTANCE --
         ArrayList<Individual> distanceSorted = new ArrayList<Individual>(members);
         Collections.sort(distanceSorted, Sorter.distanceComparator());
 
         // Set inf to extremals - for good distribution
-        distanceSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
-        distanceSorted.get(distanceSorted.size()-1).setCrowdingDistance(Double.MAX_VALUE);
+        distanceSorted.get(0).setCrowdingDistance(Double.POSITIVE_INFINITY);
+        distanceSorted.get(distanceSorted.size()-1).setCrowdingDistance(Double.POSITIVE_INFINITY);
 
         double minDistance = distanceSorted.get(0).getDistance();
         double maxDistance = distanceSorted.get(distanceSorted.size()-1).getDistance();
@@ -206,13 +206,13 @@ public class Evolver {
         }
 
 
-        // COST
+        // -- COST --
         ArrayList<Individual> costSorted = new ArrayList<Individual>(members);
         Collections.sort(distanceSorted, Sorter.costComparator());
 
         // Set inf to extremals - for good distribution
-        costSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
-        costSorted.get(costSorted.size()-1).setCrowdingDistance(Double.MAX_VALUE);
+        costSorted.get(0).setCrowdingDistance(Double.POSITIVE_INFINITY);
+        costSorted.get(costSorted.size()-1).setCrowdingDistance(Double.POSITIVE_INFINITY);
 
         double minCost = costSorted.get(0).getCost();
         double maxCost = costSorted.get(costSorted.size()-1).getCost();
@@ -224,7 +224,7 @@ public class Evolver {
 
             double currentCrowdingDistance = costSorted.get(i).getCrowdingDistance();
 
-            double costCrowdinDistance = currentCrowdingDistance + ((next - previous) / (maxDistance - minDistance));
+            double costCrowdinDistance = currentCrowdingDistance + ((next - previous) / (maxCost - minCost));
             costSorted.get(i).setCrowdingDistance(costCrowdinDistance);
         }
 
