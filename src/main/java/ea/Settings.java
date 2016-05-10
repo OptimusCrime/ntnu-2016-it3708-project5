@@ -1,12 +1,24 @@
 package ea;
 
 public class Settings {
-    public static int populationSize = 21;
-    public static double crossover = 0.8;
-    public static double mutation = 0.2;
-    public static int tournamentSize = 25;
+    // Number of cities
+    public static int cities = 20;
+
+    // Population size
+    public static int populationSize = 2000;
+
+    // Max number of generations
+    public static int maxGeneration = 45;
+
+    // Chance for crossover
+    public static double crossover = 1.0;
+
+    // Chance for mutation
+    public static double mutation = 1.0;
+
+    // Chance for passthrou
     public static double e = 0.35;
-    public static int maxGeneration = 400;
-    public static int getTournamentSize = 25;
-    public static double tournamentK = 0.25;
+
+    // Size of the tournament
+    public static int tournamentSize = 25;
 }

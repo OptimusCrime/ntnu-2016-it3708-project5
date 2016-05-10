@@ -5,11 +5,9 @@ import parento.ParetoFront;
 import parser.Map;
 import sort.Sorter;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-import java.util.Set;
 
 public class Evolver {
 
@@ -17,18 +15,17 @@ public class Evolver {
     private ArrayList<Individual> childPool;
     private ArrayList<Individual> parentPool;
     private ArrayList<ParetoFront> paretoFronts;
-    private Individual bestIndividual;
-
-    private Random random;
 
     /**
      * Constructor
      */
 
     public Evolver() {
+        // Load the map to make sure we have the correct pool size loaded
+        Map.getInstance();
+
         // Set current generation
         this.generation = 0;
-        this.random = new Random();
 
         // Create empty child and parent pool
         childPool = new ArrayList<>();
@@ -68,27 +65,41 @@ public class Evolver {
     }
 
     /**
+     * Run one generation
+     *
+     * @return Returns false if we are finished running our evolver
+     */
+
+    public boolean runGeneration() {
+        System.out.println("Generation #" + this.generation);
+        if (this.generation < Settings.maxGeneration) {
+            this.evolve();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Solve the problem
      */
 
-    public void solve() {
+    private void solve() {
         // Run n generations
         while (this.generation < Settings.maxGeneration) {
-            System.out.println("Generation " + this.generation);
             // Evolve the current generation
             this.evolve();
-
-            // Debug
-            System.out.println("Gen: " + this.generation + " " + this.bestIndividual);
         }
     }
 
     /**
-     * Adult selection
+     * Implementation of the non-dominated-sort
+     *
+     * @param population Population to sort
      */
 
     private void nonDominatedSort(ArrayList<Individual> population) {
-
         // Resets dominated by and number of fronts it is dominated by
         for (Individual person : population) {
             person.reset();
@@ -159,11 +170,15 @@ public class Evolver {
      */
 
     private void parentSelectionAndBreeding() {
-
+        // Copy list of parents
         ArrayList<Individual> potentialParents = new ArrayList<>(this.parentPool);
+
+        // Create empty list of children
         ArrayList<Individual> children = new ArrayList<>();
 
+        // Loop until we have enough children
         while (children.size() < Settings.populationSize) {
+            // Select parents
             Individual mother = selectParent(potentialParents);
             Individual father = selectParent(potentialParents);
 
@@ -177,72 +192,117 @@ public class Evolver {
             // Add to child pool
             children.add(offspring[0]);
             children.add(offspring[1]);
-
         }
+
+        // Update child pool
         this.childPool = children;
     }
 
+    /**
+     * Parent selection with tournament selection
+     *
+     * @param parents List of potential parents
+     * @return The lucky parent!
+     */
+
+    @SuppressWarnings("unchecked")
     private Individual selectParent(ArrayList<Individual> parents) {
         // TODO: In place ?
         ArrayList<Individual> candidates = new ArrayList<>(parents);
         Collections.shuffle(candidates);
 
+        // Create sublist of parents with tournament size
         ArrayList<Individual> tournament = new ArrayList<>(candidates.subList(0, Math.min(parents.size(), Settings.tournamentSize)));
 
-        if (Settings.e <= random.nextDouble()) {
+        // Check if we should select a random
+        Random r = new Random();
+        if (Settings.e <= r.nextDouble()) {
+            // Random selection
             return tournament.get(0);
-        } else {
+        }
+        else {
+            // Select parent with best crowding distance
             Collections.sort(tournament, Sorter.crowdingDistanceComparator());
             return tournament.get(0);
         }
-
-
     }
 
+    /**
+     * Assign crowding distance to list of individuals
+     *
+     * @param members Members to calculate distances for
+     */
+
+    @SuppressWarnings("unchecked")
     private void crowdingDistanceAssignment(ArrayList<Individual> members) {
-        // -- DISTANCE --
-        ArrayList<Individual> distanceSorted = new ArrayList<Individual>(members);
+
+        //
+        // DISTANCE
+        //
+
+        ArrayList<Individual> distanceSorted = new ArrayList<>(members);
         Collections.sort(distanceSorted, Sorter.distanceComparator());
 
-        // Set inf to extremals - for good distribution
-        distanceSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
-        distanceSorted.get(distanceSorted.size() - 1).setCrowdingDistance(Double.MAX_VALUE);
-
+        // Get min/max distances
         double minDistance = distanceSorted.get(0).getDistance();
         double maxDistance = distanceSorted.get(distanceSorted.size() - 1).getDistance();
+        double minMaxDistance = maxDistance - minDistance;
 
+        // Make sure to avoid null division
+        if (Math.abs(minMaxDistance) < 1e-4) {
+            minMaxDistance = 1;
+        }
 
+        // Set inf to extremes
+        distanceSorted.get(0).setCrowdingDistance(Double.POSITIVE_INFINITY);
+        distanceSorted.get(distanceSorted.size() - 1).setCrowdingDistance(Double.POSITIVE_INFINITY);
+
+        // Set distances for the other individuals in the list
         for (int i = 1; i < distanceSorted.size() - 1; i++) {
             // Get neighbour values
             double previous = distanceSorted.get(i - 1).getDistance();
             double next = distanceSorted.get(i + 1).getDistance();
-            double currentCrowdingDistance = distanceSorted.get(i).getCrowdingDistance();
 
-            double distanceCrowdingDistance = (next - previous) / (maxDistance - minDistance);
+            // Calculate the new distance
+            double distanceCrowdingDistance = (next - previous) / minMaxDistance;
             distanceSorted.get(i).setCrowdingDistance(distanceCrowdingDistance);
         }
 
+        //
+        // COST
+        //
 
-        // -- COST --
-        ArrayList<Individual> costSorted = new ArrayList<Individual>(members);
+        ArrayList<Individual> costSorted = new ArrayList<>(members);
         Collections.sort(distanceSorted, Sorter.costComparator());
 
-        // Set inf to extremals - for good distribution
-        costSorted.get(0).setCrowdingDistance(Double.MAX_VALUE);
-        costSorted.get(costSorted.size() - 1).setCrowdingDistance(Double.MAX_VALUE);
-
+        // Get min/max cost
         double minCost = costSorted.get(0).getCost();
         double maxCost = costSorted.get(costSorted.size() - 1).getCost();
+        double minMaxCost = maxCost - minCost;
 
+        // Make sure to avoid null division
+        if (Math.abs(minMaxCost) < 1e-4) {
+            minMaxCost = 1;
+        }
+
+        // Set inf to extremes
+        costSorted.get(0).setCrowdingDistance(Double.POSITIVE_INFINITY);
+        costSorted.get(distanceSorted.size() - 1).setCrowdingDistance(Double.POSITIVE_INFINITY);
+
+        // Set cost for the other individuals in the list
         for (int i = 1; i < costSorted.size() - 1; i++) {
             // Get neighbour values
             double previous = costSorted.get(i - 1).getCost();
             double next = costSorted.get(i + 1).getCost();
 
+            // Get the current crowding distance
             double currentCrowdingDistance = costSorted.get(i).getCrowdingDistance();
 
-            double costCrowdinDistance = currentCrowdingDistance + ((next - previous) / (maxCost - minCost));
-            costSorted.get(i).setCrowdingDistance(costCrowdinDistance);
+            // Calculate the new cost
+            double costCrowdingDistance = currentCrowdingDistance + ((next - previous) / minMaxCost);
+
+            // Update the crowding distance
+            costSorted.get(i).setCrowdingDistance(costCrowdingDistance);
         }
 
     }
@@ -251,11 +311,12 @@ public class Evolver {
      * Runs the algorithm one generation
      */
 
-    public void evolve() {
+    @SuppressWarnings("unchecked")
+    private void evolve() {
 
-        //////////////////////
-        //  Adult selection //
-        //////////////////////
+        //
+        // ADULT SELECTION
+        //
 
         // Combine P and Q in R
         ArrayList<Individual> population = new ArrayList<>(parentPool);
@@ -282,26 +343,29 @@ public class Evolver {
 
             // Increase counter
             counter++;
+
+            // Make sure to avoid index out of bounds exception
+            if (paretoFronts.size() == counter) {
+                break;
+            }
         }
 
         // Assign crowding distance and Sord the remaining members
         this.crowdingDistanceAssignment(paretoFronts.get(counter).getAllMembers());
+
+        // Sort them
         Collections.sort(paretoFronts.get(counter).getAllMembers(), Sorter.crowdingDistanceComparator());
 
         // Add the remaining individuals from the front members
-        newPopulation.addAll(paretoFronts.get(counter).getAllMembers().subList(0, (Settings.populationSize - newPopulation.size())));
+        newPopulation.addAll(paretoFronts.get(counter).getAllMembers().subList(0,
+                (Settings.populationSize - newPopulation.size())));
 
         // Set new population as parents
         this.parentPool = newPopulation;
 
-        ///////////////////////
-        //  Parent selection //
-        ///////////////////////
-
-        System.out.println(newPopulation.size());
-
-        // Log the best individual
-        this.logBestIndividual();
+        //
+        // PARENT SELECTION
+        //
 
         // Select who gets to mate, and mate them
         this.parentSelectionAndBreeding();
@@ -311,19 +375,72 @@ public class Evolver {
     }
 
     /**
-     * Logs the best individual for each generation
+     * From a population, pick the best and worst for distance and cost. Used for plotting
+     *
+     * @param population Population to pick from
+     * @return List on this form: 0 - best distance, 1 - worst distance, 2 - best cost, 3 - worst cost
      */
 
-    private void logBestIndividual() {
-        // Get the first individual
-        ArrayList<Individual> bestIndividuals = new ArrayList<>(this.paretoFronts.get(0).getAllMembers());
-        //Collections.sort(bestIndividuals, Sorter.crowdingDistanceComparator());
-        //bestIndividual = bestIndividuals.get(0);
+    public static ArrayList<Individual> getBestAndWorst(ArrayList<Individual> population) {
+        // Prepopulate
+        ArrayList<Individual> bestAndWorst = new ArrayList<>();
+        bestAndWorst.add(population.get(0)); // Best distance
+        bestAndWorst.add(population.get(0)); // Worst distance
+        bestAndWorst.add(population.get(0)); // Best cost
+        bestAndWorst.add(population.get(0)); // Worst cost
 
-        bestIndividual = this.parentPool.get(0);
+        // Loop the population
+        for (Individual member : population) {
+            // Get the values
+            double distance = member.getDistance();
+            double cost = member.getCost();
 
-        for (Individual individual : this.parentPool) {
-            // Check if this individual is better than best
+            // Check if we should swap out current worst/best
+            if (distance > bestAndWorst.get(0).getDistance()) {
+                bestAndWorst.set(0, member);
+            }
+            if (distance < bestAndWorst.get(1).getDistance()) {
+                bestAndWorst.set(1, member);
+            }
+            if (cost > bestAndWorst.get(2).getCost()) {
+                bestAndWorst.set(2, member);
+            }
+            if (cost < bestAndWorst.get(3).getCost()) {
+                bestAndWorst.set(3, member);
+            }
         }
+
+        // Return the best and worst
+        return bestAndWorst;
+    }
+
+    /**
+     * Get generation as an int
+     *
+     * @return The generation
+     */
+
+    public int getGeneration() {
+        return this.generation;
+    }
+
+    /**
+     * Get all the pareto fronts
+     *
+     * @return List of pareto fronts
+     */
+
+    public ArrayList<ParetoFront> getParetoFronts() {
+        return paretoFronts;
+    }
+
+    /**
+     * Get all children
+     *
+     * @return List of children
+     */
+
+    public ArrayList<Individual> getChildren() {
+        return childPool;
     }
 }

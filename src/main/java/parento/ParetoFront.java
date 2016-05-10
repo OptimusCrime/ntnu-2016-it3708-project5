@@ -3,8 +3,6 @@ package parento;
 import nsga.Individual;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class ParetoFront {
 
@@ -13,6 +11,7 @@ public class ParetoFront {
 
     /**
      * Constructor
+     *
      * @param index The layer id
      */
 
@@ -24,12 +23,19 @@ public class ParetoFront {
         this.index = index;
     }
 
+    /**
+     * Getter for the index this front has
+     *
+     * @return The index as an int
+     */
+
     public int getIndex() {
         return this.index;
     }
 
     /**
      * Add member to the front
+     *
      * @param individual Individual to add
      */
 
@@ -38,12 +44,19 @@ public class ParetoFront {
         members.add(individual);
     }
 
+    /**
+     * Add all from a list to our members list
+     *
+     * @param list Input list to take members from
+     */
+
     public void addAll(ArrayList<Individual> list) {
         members.addAll(list);
     }
 
     /**
      * Get member of this front by an id
+     *
      * @param index Index to fetch member of
      * @return The member with corresponding index
      */
@@ -54,6 +67,7 @@ public class ParetoFront {
 
     /**
      * Returns number of members of this front
+     *
      * @return Size of front
      */
 
@@ -63,6 +77,7 @@ public class ParetoFront {
 
     /**
      * Return all members of this front
+     *
      * @return ArrayList with members
      */
 
