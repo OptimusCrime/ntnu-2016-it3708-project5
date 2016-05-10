@@ -188,7 +188,7 @@ public class Main {
         allCountLabel = new JLabel("Population Size: ");
         allCountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        frontCountLabel = new JLabel("Front Size: ");
+        frontCountLabel = new JLabel("Non Dominated Solutions: ");
         frontCountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Add to outer layout
@@ -242,7 +242,7 @@ public class Main {
             // Update generation label
             generationLabel.setText("Generation: " + this.evo.getGeneration() + " / " + Settings.maxGeneration);
             allCountLabel.setText("Population Size: " + this.evo.getParents().size());
-            frontCountLabel.setText("Front Size: " + this.evo.getParetoFronts().get(0).getSize());
+            frontCountLabel.setText("Non Dominated Solutions: " + this.evo.getParetoFronts().get(0).getSize());
 
             // Remove legends
             allChart.removeLegend();
