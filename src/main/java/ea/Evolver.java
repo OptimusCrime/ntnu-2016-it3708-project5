@@ -190,7 +190,6 @@ public class Evolver {
             // Add to child pool
             children.add(offspring[0]);
             children.add(offspring[1]);
-
         }
 
         // Update child pool
@@ -377,6 +376,7 @@ public class Evolver {
      */
 
     private void logBestIndividual() {
+        /*
         for (Individual member : this.childPool) {
             System.out.println(member);
         }
@@ -384,7 +384,6 @@ public class Evolver {
         System.out.println("---------------------------------");
         System.out.println(" ");
 
-        /*
         // Get the first individual
         //ArrayList<Individual> bestIndividuals = new ArrayList<>(this.paretoFronts.get(0).getAllMembers());
         //Collections.sort(bestIndividuals, Sorter.crowdingDistanceComparator());
@@ -395,6 +394,10 @@ public class Evolver {
         for (Individual individual : this.parentPool) {
             // Check if this individual is better than best
         }*/
+    }
+
+    public int getGeneration() {
+        return this.generation;
     }
 
     public ArrayList<ParetoFront> getParetoFronts() {

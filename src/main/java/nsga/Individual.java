@@ -36,6 +36,12 @@ public class Individual {
         this.generateRandomRoute();
     }
 
+    /**
+     * Constructor with provided dna
+     *
+     * @param dna Provided DNA for this individual
+     */
+
     public Individual(int[] dna) {
         // Set empty values for domination
         this.dominatedIndividuals = new ArrayList<>();
@@ -43,6 +49,18 @@ public class Individual {
 
         // Copy our route
         this.route = dna;
+    }
+
+    /**
+     * Check if this individual dominates another individual
+     *
+     * @param other The individual we are going to check if we dominates or not
+     * @return True if we dominate, false otherwise
+     */
+
+    public boolean dominates(Individual other) {
+        int dominate = dominatesDistance(other.getDistance()) + dominatesCost(other.getCost());
+        return dominate > 0;
     }
 
     /**
@@ -92,49 +110,96 @@ public class Individual {
     }
 
     /**
-     * Pareto Methods
+     * Get this individuals' route/DNA
+     *
+     * @return The int array (phenotype) for this individual
+     */
+
+    public int[] getRoute() {
+        return this.route;
+    }
+
+    /**
+     * Get pareto rank
+     *
+     * @return The pareto rank
      */
 
     public int getParetoRank() {
         return paretoRank;
     }
 
+    /**
+     * Setter for pareto rank
+     *
+     * @param paretoRank The pareto rank for this individual
+     */
+
     public void setParetoRank(int paretoRank) {
         this.paretoRank = paretoRank;
     }
+
+    /**
+     * Set crowding distance
+     *
+     * @return The crowding distance
+     */
 
     public double getCrowdingDistance() {
         return crowdingDistance;
     }
 
+    /**
+     * Setter for crowding distance
+     *
+     * @param crowdingDistance The crowding distance for this individual
+     */
+
     public void setCrowdingDistance(double crowdingDistance) {
         this.crowdingDistance = crowdingDistance;
     }
 
-    public boolean dominates(Individual other) {
-        int dominate = dominatesDistance(other.getDistance()) + dominatesCost(other.getCost());
-        return dominate > 0;
-    }
-
-    public int[] getRoute() {
-        return this.route;
-    }
+    /**
+     * Individuals we dominate
+     *
+     * @return The list of individuals we dominate
+     */
 
     public ArrayList<Individual> getDominatedIndividuals() {
         return dominatedIndividuals;
     }
 
+    /**
+     * Add an individual we dominate
+     *
+     * @param individual The individual we dominate
+     */
+
     public void addDominatedIndividuals(Individual individual) {
         this.dominatedIndividuals.add(individual);
     }
+
+    /**
+     * Return the number of individuals we are dominated by
+     *
+     * @return The number of individuals we are dominated by
+     */
 
     public int getDominatedBy() {
         return dominatedBy;
     }
 
+    /**
+     * Increase the number of individuals we are dominated by
+     */
+
     public void increaseDominatedBy() {
         this.dominatedBy++;
     }
+
+    /**
+     * Decrease the number of individuals we are dominated by
+     */
 
     public void decreaseDominatedBy() {
         this.dominatedBy--;
@@ -210,7 +275,25 @@ public class Individual {
         offspring[1] = new Individual(child2);
 
         return offspring;
+    }
 
+    /**
+     * Make sure the crossover does not create invalid routes
+     *
+     * @param dirty Dirty array of cities
+     * @param change Number in
+     * @param to Number out
+     * @param excludeIndex Index to exclude
+     * @return The cleaned up crossover array
+     */
+
+    private int[] cleanupCrossover(int[] dirty, int change, int to, int excludeIndex) {
+        for (int i = 0; i < dirty.length; i++) {
+            if (dirty[i] == change && i != excludeIndex) {
+                dirty[i] = to;
+            }
+        }
+        return dirty;
     }
 
     /**
@@ -226,20 +309,23 @@ public class Individual {
         this.dominatedBy = 0;
     }
 
-    private int[] cleanupCrossover(int[] dirty, int change, int to, int excludeIndex) {
-        for (int i = 0; i < dirty.length; i++) {
-            if (dirty[i] == change && i != excludeIndex) {
-                dirty[i] = to;
-            }
-        }
-        return dirty;
-    }
+    /**
+     * Return a random chromosome
+     *
+     * @return Number from 1 - [number of chromosomes - 1]
+     */
 
     private int getRandomChromosome() {
         Random r = new Random();
         return r.nextInt((size - 1) + 1);
-
     }
+
+    /**
+     * Check if we dominate another distance
+     *
+     * @param otherDistance Other distance to compare to
+     * @return True if we dominates this distance, false otherwise
+     */
 
     private int dominatesDistance(double otherDistance) {
         if (this.getDistance() < otherDistance) {
@@ -251,6 +337,13 @@ public class Individual {
             return -1;
         }
     }
+
+    /**
+     * Check if we dominate another cost
+     *
+     * @param otherCost Other cost to compare to
+     * @return True if we dominates this cost, false otherwise
+     */
 
     private int dominatesCost(double otherCost) {
         if (this.getCost() < otherCost) {

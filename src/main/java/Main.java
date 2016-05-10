@@ -13,8 +13,20 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.TimerTask;
 
 public class Main {
+
+    // The evolution
+    private Evolver evo;
+
+    // Java SWING!
+    private JLabel generationLabel;
+
+    //private Timeline timeline;
+    private boolean running;
 
     // For "all" chart
     private ChartPanel allChartPanel;
@@ -141,6 +153,7 @@ public class Main {
         f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         // Create panels
+        JPanel outerContainer = new JPanel();
         JPanel chartContainer = new JPanel();
         JPanel allChartPanel = new JPanel();
         JPanel frontChartPanel = new JPanel();
@@ -150,78 +163,129 @@ public class Main {
         frontChartPanel.add(this.frontChartPanel);
 
         // Add panels to container
-        chartContainer.setLayout(new GridLayout(1,2));
+        chartContainer.setLayout(new GridLayout(1, 2));
         chartContainer.add(allChartPanel);
         chartContainer.add(frontChartPanel);
 
+        // Create label
+        generationLabel = new JLabel("Generation: 0");
+        generationLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Add to outer layout
+        outerContainer.setLayout(new BoxLayout(outerContainer, 1));
+        outerContainer.add(generationLabel);
+        outerContainer.add(chartContainer);
+
         // Add container to frame and display
-        f.add(chartContainer);
+        f.add(outerContainer);
         f.pack();
         f.setVisible(true);
     }
 
     /**
-     * Run the Evolver/plotter
+     * Start the interval that updates the view every nth ms
      */
 
     private void run() {
-        // Start the evolver
-        Evolver evo = new Evolver();
-        evo.initialize();
+        // Set running
+        this.running = true;
 
-        // Loop until we are finished
-        while (true) {
+        // Start the evolver
+        this.evo = new Evolver();
+        this.evo.initialize();
+
+        Timer timer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tick();
+            }
+        });
+        timer.start();
+
+        /*
+        // Create a new timeline
+        timeline = new Timeline();
+
+        // Create the initial keyframe
+        timeline.getKeyFrames().setAll(new KeyFrame(
+                Duration.millis(130),
+                new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent actionEvent) {
+                        System.out.println("Handler in here");
+                        derp();
+                    }
+                }
+        ));
+
+        // Set count
+        timeline.setCycleCount(Timeline.INDEFINITE);
+
+        // Play the timeline
+        timeline.play();*/
+    }
+
+    public void derp() {
+        System.out.println("HELLOOO");
+    }
+
+
+    /**
+     * Run a single tick
+     */
+
+    public void tick() {
+        // Make sure we are still running
+        if (running) {
             // Reset the dataset
             this.allChart.getXYPlot().setDataset(newAllDataset());
             this.frontChart.getXYPlot().setDataset(newFrontDataset());
 
             // Run one generation
-            boolean state = evo.runGeneration();
+            boolean state = this.evo.runGeneration();
 
-            // Populate the dataset
-            EventQueue.invokeLater(new Runnable() {
-                @Override public void run() {
-                    // Remove legends
-                    allChart.removeLegend();
-                    frontChart.removeLegend();
+            // Update generation label
+            generationLabel.setText("Generation: " + this.evo.getGeneration());
 
-                    //
-                    // ALL CHART
-                    //
+            // Remove legends
+            allChart.removeLegend();
+            frontChart.removeLegend();
 
-                    // Loop all the individuals
-                    for (Individual member : evo.getChildren()) {
-                        // Add current member to plot
-                        allPlotData.add(new XYDataItem(member.getDistance(), member.getCost()));
-                    }
+            //
+            // ALL CHART
+            //
 
-                    // Set the dataset
-                    allChartPanel.getChart().getXYPlot().setDataset(allChart.getXYPlot().getDataset());
+            // Loop all the individuals
+            for (Individual member : this.evo.getChildren()) {
+                // Add current member to plot
+                allPlotData.add(new XYDataItem(member.getDistance(), member.getCost()));
+            }
 
-                    // Update the UI
-                    allChartPanel.updateUI();
+            // Set the dataset
+            allChartPanel.getChart().getXYPlot().setDataset(allChart.getXYPlot().getDataset());
 
-                    //
-                    // FRONT CHART
-                    //
+            // Update the UI
+            allChartPanel.updateUI();
 
-                    // Loop all members in the first front
-                    for (Individual member : evo.getParetoFronts().get(0).getAllMembers()) {
-                        // Add current member to plot
-                        frontPlotData.add(new XYDataItem(member.getDistance(), member.getCost()));
-                    }
+            //
+            // FRONT CHART
+            //
 
-                    // Set the dataset
-                    frontChartPanel.getChart().getXYPlot().setDataset(frontChart.getXYPlot().getDataset());
+            // Loop all members in the first front
+            for (Individual member : this.evo.getParetoFronts().get(0).getAllMembers()) {
+                // Add current member to plot
+                frontPlotData.add(new XYDataItem(member.getDistance(), member.getCost()));
+            }
 
-                    // Update the UI
-                    frontChartPanel.updateUI();
-                }
-            });
+            // Set the dataset
+            frontChartPanel.getChart().getXYPlot().setDataset(frontChart.getXYPlot().getDataset());
+
+            // Update the UI
+            frontChartPanel.updateUI();
 
             // Check if we should break
             if (!state) {
-                break;
+                running = false;
             }
         }
     }
