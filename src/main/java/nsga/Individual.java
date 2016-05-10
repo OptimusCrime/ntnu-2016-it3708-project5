@@ -1,29 +1,22 @@
 package nsga;
 
-import com.sun.scenario.Settings;
+import ea.Settings;
 import parser.Map;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 public class Individual {
 
-    /**
-     * Fields
-     */
-
-    private static double mutation = 0.3;
-    private static double crossover = 0.5;
+    // TODO do dynamic
     private static int size = 48;
 
-    // Shared random
-    private static Random random;
     // Domination counts
     private ArrayList<Individual> dominatedIndividuals;
     private int dominatedBy;
 
+    // Various values
     private int[] route;
     private Double distance;
     private Double cost;
@@ -35,33 +28,31 @@ public class Individual {
      */
 
     public Individual() {
-        this.dominatedIndividuals = new ArrayList<Individual>();
+        // Set empty values for domination
+        this.dominatedIndividuals = new ArrayList<>();
         this.crowdingDistance = 0.0;
 
-        // Initialize static random
-        if (this.random == null) {
-            this.random = new Random();
-        }
-        generateRandomRoute();
+        // Generate random route for this individual
+        this.generateRandomRoute();
     }
 
     public Individual(int[] dna) {
-        this.dominatedIndividuals = new ArrayList<Individual>();
+        // Set empty values for domination
+        this.dominatedIndividuals = new ArrayList<>();
         this.crowdingDistance = 0.0;
 
-        // Initialize static random
-        if (this.random == null) {
-            this.random = new Random();
-        }
-
+        // Copy our route
         this.route = dna;
     }
 
     /**
-     * Calculate objective functions
+     * Calculate objective function #1 (distance)
+     *
+     * @return The distance
      */
 
     public double getDistance() {
+        // Only calculate if not already stored
         if (this.distance == null) {
             this.distance = 0.0;
 
@@ -72,10 +63,19 @@ public class Individual {
             // Add last element to first element to complete the circle
             this.distance += Map.getInstance().getDistance(this.route[this.route.length - 1], this.route[0]);
         }
+
+        // Simply return the distance
         return this.distance;
     }
 
+    /**
+     * Calculate objective function #2 (cost)
+     *
+     * @return The cost
+     */
+
     public double getCost() {
+        // Only calculate if not already stored
         if (this.cost == null) {
             this.cost = 0.0;
 
@@ -86,6 +86,8 @@ public class Individual {
             // Add last element to first element to complete the circle
             this.cost += Map.getInstance().getCost(this.route[route.length - 1], this.route[0]);
         }
+
+        // Simply return the score
         return this.cost;
     }
 
@@ -130,10 +132,6 @@ public class Individual {
         return dominatedBy;
     }
 
-    public void setDominatedBy(int dominatedBy) {
-        this.dominatedBy = dominatedBy;
-    }
-
     public void increaseDominatedBy() {
         this.dominatedBy++;
     }
@@ -143,11 +141,12 @@ public class Individual {
     }
 
     /**
-     * Genetic operators
+     * Mutation
      */
 
     public void mutate() {
-        if (random.nextDouble() > mutation) {
+        Random r = new Random();
+        if (Settings.mutation < r.nextDouble()) {
             return;
         }
 
@@ -167,17 +166,24 @@ public class Individual {
         this.reset();
     }
 
+    /**
+     * Crossover
+     * @param other Individual to do crossover with
+     * @return The new individuals
+     */
+
     public Individual[] crossover(Individual other) {
+        Random r = new Random();
 
         // No breeding - return copies of parents
-        if (random.nextDouble() > crossover) {
+        if (Settings.crossover < r.nextDouble()) {
             Individual[] noOffspring = new Individual[2];
             noOffspring[0] = new Individual(this.getRoute());
             noOffspring[1] = new Individual(this.getRoute());
             return noOffspring;
         }
 
-        int crossover = random.nextInt(size - 2) + 1; // Random crossover from 1 to 46 (46+1 is exclusive)
+        int crossover = r.nextInt(size - 2) + 1; // Random crossover from 1 to 46 (46+1 is exclusive)
 
         int[] child1 = this.getRoute();
         int[] child2 = other.getRoute();
@@ -206,13 +212,8 @@ public class Individual {
 
     }
 
-    public void resetDomination() {
-        this.dominatedBy = 0;
-        this.dominatedIndividuals = new ArrayList<>();
-    }
-
     /**
-     * Helpers
+     * Reset values for this individual (important if mutated)
      */
 
     public void reset() {
@@ -234,7 +235,8 @@ public class Individual {
     }
 
     private int getRandomChromosone() {
-        return random.nextInt((size - 1) + 1);
+        Random r = new Random();
+        return r.nextInt((size - 1) + 1);
 
     }
 
@@ -260,7 +262,10 @@ public class Individual {
         }
     }
 
-    // Create random dna
+    /**
+     * Create a random route for this individual
+     */
+
     private void generateRandomRoute() {
         // Create and shuffle the nsga.cities
         List<Integer> cities = Stream.iterate(1, n -> n + 1).limit(size).collect(Collectors.toList());
@@ -270,14 +275,16 @@ public class Individual {
         // Add as chromosomes
         this.route = new int[size];
         int counter = 0;
-        for (int citiId : cities) {
-            this.route[counter] = citiId;
+        for (int cityId : cities) {
+            this.route[counter] = cityId;
             counter++;
         }
     }
 
     /**
      * toString
+     *
+     * @return Stringification of the object
      */
 
     public String toString(){
