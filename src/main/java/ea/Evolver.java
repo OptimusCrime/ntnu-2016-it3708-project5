@@ -18,6 +18,10 @@ public class Evolver {
     private HashMap<Double, Boolean> distanceMap;
     private HashMap<Double, Boolean> costMap;
 
+    // All time highest
+    private double dist = Double.POSITIVE_INFINITY;
+    private double cost = Double.POSITIVE_INFINITY;
+
     /**
      * Constructor
      */
@@ -115,10 +119,36 @@ public class Evolver {
         if (this.generation < Settings.maxGeneration) {
             this.evolve();
 
+            storeBestAndWorst();
             return true;
         }
-
+        storeBestAndWorst();
         return false;
+    }
+
+    private void storeBestAndWorst() {
+        ArrayList<Individual> bestAndWorst = getBestAndWorst(this.paretoFronts.get(0).getAllMembers());
+
+        // TODO: fix
+        double dBest = bestAndWorst.get(1).getDistance();
+        double dWorst = bestAndWorst.get(0).getDistance();
+        double cBest = bestAndWorst.get(3).getCost();
+        double cWorst = bestAndWorst.get(2).getCost();
+
+        if (dBest < dist) {
+            dist = dBest;
+        }
+
+        if (cBest < cost) {
+            cost = cBest;
+        }
+
+        System.out.println("----------------------------------------");
+        System.out.println("[Distance] BEST: " + dist + " WORST: " + dWorst);
+        System.out.println("[Cost]     BEST: " + cost + "   WORST: " + cWorst);
+        System.out.println("----------------------------------------");
+
+
     }
 
     /**
@@ -268,7 +298,7 @@ public class Evolver {
             parent = tournament.get(0);
         }
 
-        if(Settings.sexualPreventionCrowdingDistance) {
+        if (Settings.sexualPreventionCrowdingDistance) {
             // If it has a crowdinDistance of 0.0 don't chose it
             if (parent.getCrowdingDistance() == 0.0) {
                 return selectParent(parents);
@@ -310,11 +340,6 @@ public class Evolver {
 
         // Set distances for the other individuals in the list
         for (int i = 1; i < distanceSorted.size() - 1; i++) {
-            if (Settings.fitnessConstraint) {
-
-                // Save the scores here - for unique fitness
-                existingFitness(distanceSorted.get(0));
-            }
 
             // Get neighbour values
             double previous = distanceSorted.get(i - 1).getDistance();
@@ -449,7 +474,7 @@ public class Evolver {
      * From a population, pick the best and worst for distance and cost. Used for plotting
      *
      * @param population Population to pick from
-     * @return List on this form: 0 - best distance, 1 - worst distance, 2 - best cost, 3 - worst cost
+     * @return List on this form: 1 - best distance, 0 - worst distance, 3 - best cost, 2 - worst cost
      */
 
     public static ArrayList<Individual> getBestAndWorst(ArrayList<Individual> population) {
