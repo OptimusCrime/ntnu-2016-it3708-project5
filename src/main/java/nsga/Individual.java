@@ -248,13 +248,14 @@ public class Individual {
             return noOffspring;
         }
 
-        int crossover = r.nextInt(Settings.cities - 2) + 1; // Random crossover from 1 to 46 (46+1 is exclusive)
+        int crossoverStart = r.nextInt(Settings.cities ) + 1; // Random crossover from 1 to 46 (46+1 is exclusive)
+        int crossoverEnd = crossoverStart + r.nextInt((Settings.cities - crossoverStart) + 1);
 
         int[] child1 = this.getRoute().clone();
         int[] child2 = other.getRoute().clone();
 
         // First child
-        for (int i = 0; i < crossover; i++) {
+        for (int i = crossoverStart; i < crossoverEnd; i++) {
             int outNumber = child1[i];                // Number that will be removed
             int inNumber = other.getRoute()[i];       // Number that will take its place
             child1[i] = inNumber;
@@ -262,7 +263,7 @@ public class Individual {
         }
 
         // Second child
-        for (int j = 0; j < crossover; j++) {
+        for (int j = crossoverStart; j < crossoverEnd; j++) {
             int outNumber = child2[j];
             int inNumber = this.getRoute()[j];
             child2[j] = inNumber;
