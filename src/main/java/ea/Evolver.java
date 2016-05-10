@@ -5,10 +5,7 @@ import parento.ParetoFront;
 import parser.Map;
 import sort.Sorter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 
 public class Evolver {
 
@@ -254,6 +251,9 @@ public class Evolver {
         ArrayList<Individual> candidates = new ArrayList<>(parents);
         Collections.shuffle(candidates);
 
+        // Parent to be returned
+        Individual parent = null;
+
         // Create sublist of parents with tournament size
         ArrayList<Individual> tournament = new ArrayList<>(candidates.subList(0, Math.min(parents.size(), Settings.tournamentSize)));
 
@@ -261,12 +261,21 @@ public class Evolver {
         Random r = new Random();
         if (Settings.e <= r.nextDouble()) {
             // Random selection
-            return tournament.get(0);
+            parent = tournament.get(0);
         } else {
             // Select parent with best crowding distance
             Collections.sort(tournament, Sorter.crowdingDistanceComparator());
-            return tournament.get(0);
+            parent = tournament.get(0);
         }
+
+        if(Settings.sexualPreventionCrowdingDistance) {
+            // If it has a crowdinDistance of 0.0 don't chose it
+            if (parent.getCrowdingDistance() == 0.0) {
+                return selectParent(parents);
+            }
+        }
+        return parent;
+
     }
 
     /**
