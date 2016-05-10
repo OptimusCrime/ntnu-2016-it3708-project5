@@ -7,6 +7,7 @@ import sort.Sorter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Random;
 
 public class Evolver {
@@ -16,11 +17,18 @@ public class Evolver {
     private ArrayList<Individual> parentPool;
     private ArrayList<ParetoFront> paretoFronts;
 
+    // Tables to penalize similar values
+    private HashMap<Double, Boolean> distanceMap;
+    private HashMap<Double, Boolean> costMap;
+
     /**
      * Constructor
      */
 
     public Evolver() {
+        // Initialize unique maps
+        clearMaps();
+
         // Load the map to make sure we have the correct pool size loaded
         Map.getInstance();
 
@@ -31,6 +39,38 @@ public class Evolver {
         childPool = new ArrayList<>();
         parentPool = new ArrayList<>();
         paretoFronts = new ArrayList<>();
+    }
+
+    /**
+     * Method for clearing fitness maps
+     */
+
+    private void clearMaps() {
+        distanceMap = new HashMap<>();
+        costMap = new HashMap<>();
+    }
+
+    private boolean existingFitness(Individual individual) {
+        boolean distance = false;
+        boolean cost = false;
+
+        // -- Distance --
+        // Check if other individual with this fitness exists
+        if (distanceMap.get(individual.getDistance()) != null) {
+            distance = true;
+        } else {
+            distanceMap.put(individual.getDistance(), true);
+        }
+
+        // -- Cost --
+        // Check if other individual with this fitness exists
+        if (costMap.get(individual.getCost()) != null) {
+            cost = true;
+        } else {
+            costMap.put(individual.getCost(), true);
+        }
+
+        return (distance && cost);
     }
 
     /**
@@ -71,6 +111,9 @@ public class Evolver {
      */
 
     public boolean runGeneration() {
+        // Clear unique maps
+        clearMaps();
+
         System.out.println("Generation #" + this.generation);
         if (this.generation < Settings.maxGeneration) {
             this.evolve();
@@ -219,8 +262,7 @@ public class Evolver {
         if (Settings.e <= r.nextDouble()) {
             // Random selection
             return tournament.get(0);
-        }
-        else {
+        } else {
             // Select parent with best crowding distance
             Collections.sort(tournament, Sorter.crowdingDistanceComparator());
             return tournament.get(0);
@@ -259,6 +301,12 @@ public class Evolver {
 
         // Set distances for the other individuals in the list
         for (int i = 1; i < distanceSorted.size() - 1; i++) {
+            if (Settings.fitnessConstraint) {
+
+                // Save the scores here - for unique fitness
+                existingFitness(distanceSorted.get(0));
+            }
+
             // Get neighbour values
             double previous = distanceSorted.get(i - 1).getDistance();
             double next = distanceSorted.get(i + 1).getDistance();
@@ -303,6 +351,20 @@ public class Evolver {
 
             // Update the crowding distance
             costSorted.get(i).setCrowdingDistance(costCrowdingDistance);
+        }
+
+        if (Settings.fitnessConstraint) {
+
+            // Penalize solution that do not have unique fitness
+            // Set crowding distance to 0.0 if fitness is not unique
+            for (Individual individual : members) {
+                if (existingFitness(individual) && individual.getCrowdingDistance() != Double.POSITIVE_INFINITY) {
+                    individual.setCrowdingDistance(0.0);
+                } else {
+                    double cd = individual.getCrowdingDistance();
+                    individual.setCrowdingDistance(cd);
+                }
+            }
         }
 
     }
@@ -442,5 +504,9 @@ public class Evolver {
 
     public ArrayList<Individual> getChildren() {
         return childPool;
+    }
+
+    public ArrayList<Individual> getParents() {
+        return parentPool;
     }
 }
