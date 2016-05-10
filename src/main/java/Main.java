@@ -1,4 +1,5 @@
 import ea.Evolver;
+import ea.Settings;
 import nsga.Individual;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -77,7 +78,7 @@ public class Main {
 
         // Create the chart
         this.allChart = ChartFactory.createScatterPlot(
-                "",
+                "Entire population",
                 "Distance",
                 "Cost",
                 dc,
@@ -114,7 +115,7 @@ public class Main {
 
         // Create the chart
         this.frontChart = ChartFactory.createScatterPlot(
-                "",
+                "Pareto-front",
                 "Distance",
                 "Cost",
                 dc,
@@ -168,7 +169,7 @@ public class Main {
         chartContainer.add(frontChartPanel);
 
         // Create label
-        generationLabel = new JLabel("Generation: 0");
+        generationLabel = new JLabel("Generation: 0 / " + Settings.maxGeneration);
         generationLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Add to outer layout
@@ -201,34 +202,7 @@ public class Main {
             }
         });
         timer.start();
-
-        /*
-        // Create a new timeline
-        timeline = new Timeline();
-
-        // Create the initial keyframe
-        timeline.getKeyFrames().setAll(new KeyFrame(
-                Duration.millis(130),
-                new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent actionEvent) {
-                        System.out.println("Handler in here");
-                        derp();
-                    }
-                }
-        ));
-
-        // Set count
-        timeline.setCycleCount(Timeline.INDEFINITE);
-
-        // Play the timeline
-        timeline.play();*/
     }
-
-    public void derp() {
-        System.out.println("HELLOOO");
-    }
-
 
     /**
      * Run a single tick
@@ -245,7 +219,7 @@ public class Main {
             boolean state = this.evo.runGeneration();
 
             // Update generation label
-            generationLabel.setText("Generation: " + this.evo.getGeneration());
+            generationLabel.setText("Generation: " + this.evo.getGeneration() + " / " + Settings.maxGeneration);
 
             // Remove legends
             allChart.removeLegend();
