@@ -339,6 +339,11 @@ public class Evolver {
 
             // Increase counter
             counter++;
+
+            // Make sure to avoid index out of bounds exception
+            if (paretoFronts.size() == counter) {
+                break;
+            }
         }
 
         // Assign crowding distance and Sord the remaining members
