@@ -28,6 +28,8 @@ public class Main {
 
     // Java SWING!
     private JLabel generationLabel;
+    private JLabel allCountLabel;
+    private JLabel frontCountLabel;
 
     //private Timeline timeline;
     private boolean running;
@@ -183,9 +185,17 @@ public class Main {
         generationLabel = new JLabel("Generation: 0 / " + Settings.maxGeneration);
         generationLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        allCountLabel = new JLabel("Population Size: ");
+        allCountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        frontCountLabel = new JLabel("Front Size: ");
+        frontCountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         // Add to outer layout
-        outerContainer.setLayout(new BoxLayout(outerContainer, 1));
+        outerContainer.setLayout(new BoxLayout(outerContainer, BoxLayout.Y_AXIS));
         outerContainer.add(generationLabel);
+        outerContainer.add(allCountLabel);
+        outerContainer.add(frontCountLabel);
         outerContainer.add(chartContainer);
 
         // Add container to frame and display
@@ -206,7 +216,7 @@ public class Main {
         this.evo = new Evolver();
         this.evo.initialize();
 
-        Timer timer = new Timer(1000, new ActionListener() {
+        Timer timer = new Timer(100, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 tick();
@@ -231,6 +241,8 @@ public class Main {
 
             // Update generation label
             generationLabel.setText("Generation: " + this.evo.getGeneration() + " / " + Settings.maxGeneration);
+            allCountLabel.setText("Population Size: " + this.evo.getParents().size());
+            frontCountLabel.setText("Front Size: " + this.evo.getParetoFronts().get(0).getSize());
 
             // Remove legends
             allChart.removeLegend();
@@ -241,10 +253,10 @@ public class Main {
             //
 
             // Store the best and worst for each member in this front
-            ArrayList<Individual> allBestAndWorst = Evolver.getBestAndWorst(this.evo.getChildren());
+            ArrayList<Individual> allBestAndWorst = Evolver.getBestAndWorst(this.evo.getParents());
 
             // Loop all the individuals
-            for (Individual member : this.evo.getChildren()) {
+            for (Individual member : this.evo.getParents()) {
                 // Avoid plotting the best/worst because they overdraw each other
                 if (!allBestAndWorst.contains(member)) {
                     // Add current member to plot
