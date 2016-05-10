@@ -5,16 +5,16 @@ public class Settings {
     public static int cities = 48;
 
     // Population size
-    public static int populationSize = 200;
+    public static int populationSize = 400;
 
     // Max number of generations
     public static int maxGeneration = 1000;
 
     // Chance for crossover
-    public static double crossover = 0.85;
+    public static double crossover = 1.0;
 
     // Chance for mutation
-    public static double mutation = 0.5;
+    public static double mutation = 1.0;
 
     // Chance for passthrou
     public static double e = 0.3;
