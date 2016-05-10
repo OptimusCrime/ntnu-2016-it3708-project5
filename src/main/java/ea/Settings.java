@@ -1,6 +1,9 @@
 package ea;
 
 public class Settings {
+    // Number of cities
+    public static int cities = 20;
+
     // Population size
     public static int populationSize = 2000;
 

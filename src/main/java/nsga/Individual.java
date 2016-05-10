@@ -9,9 +9,6 @@ import java.util.stream.Stream;
 
 public class Individual {
 
-    // TODO do dynamic
-    private static int size = 48;
-
     // Domination counts
     private ArrayList<Individual> dominatedIndividuals;
     private int dominatedBy;
@@ -251,7 +248,7 @@ public class Individual {
             return noOffspring;
         }
 
-        int crossover = r.nextInt(size - 2) + 1; // Random crossover from 1 to 46 (46+1 is exclusive)
+        int crossover = r.nextInt(Settings.cities - 2) + 1; // Random crossover from 1 to 46 (46+1 is exclusive)
 
         int[] child1 = this.getRoute().clone();
         int[] child2 = other.getRoute().clone();
@@ -319,7 +316,7 @@ public class Individual {
 
     private int getRandomChromosome() {
         Random r = new Random();
-        return r.nextInt((size - 1) + 1);
+        return r.nextInt((Settings.cities - 1) + 1);
     }
 
     /**
@@ -368,11 +365,11 @@ public class Individual {
 
     private void generateRandomRoute() {
         // Create and shuffle the cities to create random DNA
-        List<Integer> cities = Stream.iterate(1, n -> n + 1).limit(size).collect(Collectors.toList());
+        List<Integer> cities = Stream.iterate(1, n -> n + 1).limit(Settings.cities).collect(Collectors.toList());
         Collections.shuffle(cities);
 
         // Add as chromosomes
-        this.route = new int[size];
+        this.route = new int[Settings.cities];
         int counter = 0;
         for (int cityId : cities) {
             this.route[counter] = cityId;

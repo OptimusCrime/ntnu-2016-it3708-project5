@@ -1,5 +1,6 @@
 package parser;
 
+import ea.Settings;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -10,77 +11,37 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 
 public class Map {
-    ////////////////
-    //  Singleton //
-    ////////////////
 
+    // Instance variable
     private static Map ourInstance = new Map();
+
+    // Distance and cost maps
+    private double[][] distanceMap;
+    private double[][] costMap;
+
+    /**
+     * Get instance of map
+     *
+     * @return Singleton instance
+     */
 
     public static Map getInstance() {
         return ourInstance;
     }
 
+    /**
+     * Singleton constructor
+     */
+
     private Map() {
-        // Create city object
-        this.createCities();
-
-        // Fill city objects
-        this.generateCities();
-
-        // Accumulate statistics
-        this.calculateStatistics();
-    }
-
-    ///////////////
-    //  Cities   //
-    ///////////////
-
-    private double[][] distanceMap;
-    private double[][] costMap;
-
-    private double totalDistance;
-    private double avgDistance;
-    private double totalCost;
-    private double avgCost;
-    private double maxCost;
-    private double maxDistance;
-
-    public double getAvgCost() {
-        return avgCost;
-    }
-
-    public double getMaxCost() {
-        return maxCost;
-    }
-
-    public double getMaxDistance() {
-        return maxDistance;
-    }
-
-    public double getTotalDistance() {
-        return totalDistance;
-    }
-
-    public double getAvgDistance() {
-        return avgDistance;
-    }
-
-    public double getTotalCost() {
-        return totalCost;
-    }
-
-    private void generateCities() {
         try {
             // Load the files
             FileInputStream[] streams = getFiles();
 
             // Parse out the date from the xlxs files
-            loadCitiesFromXlsx(streams);
-
-
+            this.loadCitiesFromXlsx(streams);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -88,17 +49,50 @@ public class Map {
         }
     }
 
-    private void createCities() {
+    /**
+     * Get files from resources that holds the costs and distances
+     *
+     * @return Stream of files
+     * @throws URISyntaxException Error
+     * @throws FileNotFoundException Error
+     */
+
+    private FileInputStream[] getFiles() throws URISyntaxException, FileNotFoundException {
+        FileInputStream[] files = new FileInputStream[2];
+
+        File costFile = new File(this.getClass().getResource("/Cost_reformat.xlsx").toURI());
+        File distanceFile = new File(this.getClass().getResource("/Distance_reformat.xlsx").toURI());
+
+        files[0] = new FileInputStream(costFile);
+        files[1] = new FileInputStream(distanceFile);
+
+        return files;
+    }
+
+    /**
+     * Create cities from the source file
+     *
+     * @param size Size of the matrix to create
+     */
+
+    private void createCities(int size) {
 
         // Initialize map tables
-        distanceMap = new double[48][];
-        costMap = new double[48][];
-        for (int i = 0; i < 48; i++) {
-            distanceMap[i] = new double[48];
-            costMap[i] = new double[48];
+        distanceMap = new double[size][];
+        costMap = new double[size][];
+        for (int i = 0; i < size; i++) {
+            distanceMap[i] = new double[size];
+            costMap[i] = new double[size];
         }
 
     }
+
+    /**
+     * Load the cities cost and distance from the xlsx files
+     *
+     * @param streams Stream to read from
+     * @throws IOException If file is not existing
+     */
 
     private void loadCitiesFromXlsx(FileInputStream[] streams) throws IOException {
         // Fetch workbooks
@@ -110,9 +104,28 @@ public class Map {
         XSSFSheet costSheet = workbooks[0].getSheetAt(0);
         XSSFSheet distanceSheet = workbooks[1].getSheetAt(0);
 
+        // Find size of document
+        int idx = 0;
+        while (true) {
+            Cell cell = costSheet.getRow(idx + 1).getCell(0, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+
+            if (cell == null) {
+                break;
+            }
+            else {
+                idx++;
+            }
+        }
+
+        // Store number of cities in the settings
+        Settings.cities = idx;
+
+        // Create the cities
+        this.createCities(idx);
+
         // Loop the documents
-        for (int row = 1; row <= 48; row++) {
-            for (int column = 1; column <= 48; column++) {
+        for (int row = 1; row <= Settings.cities; row++) {
+            for (int column = 1; column <= Settings.cities; column++) {
 
                 // Fecth each cell
                 Cell costCell = costSheet.getRow(row).getCell(column, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
@@ -142,50 +155,13 @@ public class Map {
         }
     }
 
-    private FileInputStream[] getFiles() throws URISyntaxException, FileNotFoundException {
-        FileInputStream[] files = new FileInputStream[2];
-
-        File costFile = new File(this.getClass().getResource("/Cost_reformat.xlsx").toURI());
-        File distanceFile = new File(this.getClass().getResource("/Distance_reformat.xlsx").toURI());
-
-        files[0] = new FileInputStream(costFile);
-        files[1] = new FileInputStream(distanceFile);
-
-        return files;
-    }
-
-    private void calculateStatistics() {
-        totalDistance = sum2d(distanceMap);
-        totalCost = sum2d(costMap);
-        avgDistance = totalDistance / (48 * 48);
-        avgCost = totalCost / (48 * 48);
-
-        maxCost = maxValue(costMap);
-        maxDistance = maxValue(distanceMap);
-
-    }
-
-    private double maxValue(double[][] matrix) {
-        double max = 0;
-        for(int row = 0; row < matrix.length; row++) {
-            for(int column = 0; column < matrix[row].length; column++) {
-                if (matrix[row][column] > max) {
-                    max = matrix[row][column];
-                }
-            }
-        }
-        return max;
-    }
-
-    private double sum2d(double[][] matrix) {
-        double sum = 0;
-        for(int row = 0; row < matrix.length; row++) {
-            for(int column = 0; column < matrix[row].length; column++) {
-                sum += matrix[row][column];
-            }
-        }
-        return sum;
-    }
+    /**
+     * Get the distance between two cities
+     *
+     * @param fromId From id
+     * @param toId To id
+     * @return Distance
+     */
 
     public double getDistance(int fromId, int toId) {
         int fromCity = fromId - 1;
@@ -193,33 +169,18 @@ public class Map {
         return distanceMap[fromCity][toCity];
     }
 
+    /**
+     * Get the cost between two cities
+     *
+     * @param fromId From id
+     * @param toId To id
+     * @return Cost
+     */
+
     public double getCost(int fromId, int toId) {
         int fromCity = fromId - 1;
         int toCity = toId - 1;
         return costMap[fromCity][toCity];
-    }
-
-
-    public static void main(String[] args) {
-        //Load everything
-        Map m = Map.getInstance();
-
-        for (int i = 0; i < 48; i++) {
-            System.out.println(Arrays.toString(m.distanceMap[i]));
-        }
-
-
-        for (int i = 0; i < 48; i++) {
-            System.out.println(Arrays.toString(m.costMap[i]));
-        }
-        System.out.println(m.distanceMap[0][8]);
-        System.out.println(m.distanceMap[2][16]);
-        System.out.println(m.distanceMap[8][22]);
-
-        System.out.println(m.getTotalDistance());
-        System.out.println(m.getAvgDistance());
-        System.out.println(m.getTotalCost());
-        System.out.println(m.getAvgCost());
     }
 }
 

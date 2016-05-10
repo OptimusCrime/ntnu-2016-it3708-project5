@@ -2,8 +2,6 @@ package sort;
 
 import nsga.Individual;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 
 public class Sorter {

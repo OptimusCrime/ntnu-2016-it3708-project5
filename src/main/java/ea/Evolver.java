@@ -15,13 +15,15 @@ public class Evolver {
     private ArrayList<Individual> childPool;
     private ArrayList<Individual> parentPool;
     private ArrayList<ParetoFront> paretoFronts;
-    private Individual bestIndividual;
 
     /**
      * Constructor
      */
 
     public Evolver() {
+        // Load the map to make sure we have the correct pool size loaded
+        Map.getInstance();
+
         // Set current generation
         this.generation = 0;
 
@@ -83,7 +85,7 @@ public class Evolver {
      * Solve the problem
      */
 
-    public void solve() {
+    private void solve() {
         // Run n generations
         while (this.generation < Settings.maxGeneration) {
             // Evolve the current generation
@@ -203,6 +205,7 @@ public class Evolver {
      * @return The lucky parent!
      */
 
+    @SuppressWarnings("unchecked")
     private Individual selectParent(ArrayList<Individual> parents) {
         // TODO: In place ?
         ArrayList<Individual> candidates = new ArrayList<>(parents);
@@ -230,6 +233,7 @@ public class Evolver {
      * @param members Members to calculate distances for
      */
 
+    @SuppressWarnings("unchecked")
     private void crowdingDistanceAssignment(ArrayList<Individual> members) {
 
         //
@@ -307,7 +311,8 @@ public class Evolver {
      * Runs the algorithm one generation
      */
 
-    public void evolve() {
+    @SuppressWarnings("unchecked")
+    private void evolve() {
 
         //
         // ADULT SELECTION
@@ -352,7 +357,8 @@ public class Evolver {
         Collections.sort(paretoFronts.get(counter).getAllMembers(), Sorter.crowdingDistanceComparator());
 
         // Add the remaining individuals from the front members
-        newPopulation.addAll(paretoFronts.get(counter).getAllMembers().subList(0, (Settings.populationSize - newPopulation.size())));
+        newPopulation.addAll(paretoFronts.get(counter).getAllMembers().subList(0,
+                (Settings.populationSize - newPopulation.size())));
 
         // Set new population as parents
         this.parentPool = newPopulation;
@@ -360,9 +366,6 @@ public class Evolver {
         //
         // PARENT SELECTION
         //
-
-        // Log the best individual
-        this.logBestIndividual();
 
         // Select who gets to mate, and mate them
         this.parentSelectionAndBreeding();
@@ -372,29 +375,11 @@ public class Evolver {
     }
 
     /**
-     * Logs the best individual for each generation
+     * From a population, pick the best and worst for distance and cost. Used for plotting
+     *
+     * @param population Population to pick from
+     * @return List on this form: 0 - best distance, 1 - worst distance, 2 - best cost, 3 - worst cost
      */
-
-    private void logBestIndividual() {
-        /*
-        for (Individual member : this.childPool) {
-            System.out.println(member);
-        }
-        System.out.println(" ");
-        System.out.println("---------------------------------");
-        System.out.println(" ");
-
-        // Get the first individual
-        //ArrayList<Individual> bestIndividuals = new ArrayList<>(this.paretoFronts.get(0).getAllMembers());
-        //Collections.sort(bestIndividuals, Sorter.crowdingDistanceComparator());
-        //bestIndividual = bestIndividuals.get(0);
-
-        bestIndividual = this.parentPool.get(0);
-
-        for (Individual individual : this.parentPool) {
-            // Check if this individual is better than best
-        }*/
-    }
 
     public static ArrayList<Individual> getBestAndWorst(ArrayList<Individual> population) {
         // Prepopulate
@@ -429,13 +414,31 @@ public class Evolver {
         return bestAndWorst;
     }
 
+    /**
+     * Get generation as an int
+     *
+     * @return The generation
+     */
+
     public int getGeneration() {
         return this.generation;
     }
 
+    /**
+     * Get all the pareto fronts
+     *
+     * @return List of pareto fronts
+     */
+
     public ArrayList<ParetoFront> getParetoFronts() {
         return paretoFronts;
     }
+
+    /**
+     * Get all children
+     *
+     * @return List of children
+     */
 
     public ArrayList<Individual> getChildren() {
         return childPool;

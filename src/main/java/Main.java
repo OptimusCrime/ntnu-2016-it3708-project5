@@ -2,7 +2,6 @@ import ea.Evolver;
 import ea.Settings;
 import nsga.Individual;
 
-import org.eclipse.collections.impl.list.primitive.IntInterval;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
