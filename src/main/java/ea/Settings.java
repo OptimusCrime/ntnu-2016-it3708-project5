@@ -5,7 +5,7 @@ public class Settings {
     public static int populationSize = 2000;
 
     // Max number of generations
-    public static int maxGeneration = 100;
+    public static int maxGeneration = 45;
 
     // Chance for crossover
     public static double crossover = 1.0;

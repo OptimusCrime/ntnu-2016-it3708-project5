@@ -78,6 +78,7 @@ public class Individual {
             for (int i = 1; i < this.route.length; i++) {
                 this.distance += Map.getInstance().getDistance(this.route[i - 1], this.route[i]);
             }
+
             // Add last element to first element to complete the circle
             this.distance += Map.getInstance().getDistance(this.route[this.route.length - 1], this.route[0]);
         }
@@ -101,6 +102,7 @@ public class Individual {
             for (int i = 1; i < this.route.length; i++) {
                 this.cost += Map.getInstance().getCost(this.route[i - 1], this.route[i]);
             }
+
             // Add last element to first element to complete the circle
             this.cost += Map.getInstance().getCost(this.route[route.length - 1], this.route[0]);
         }
@@ -330,9 +332,11 @@ public class Individual {
     private int dominatesDistance(double otherDistance) {
         if (this.getDistance() < otherDistance) {
             return 1;
-        } else if (this.getDistance() == otherDistance) {
+        }
+        else if (this.getDistance() == otherDistance) {
             return 0;
-        } else {
+        }
+        else {
             // Dominated
             return -1;
         }
@@ -348,9 +352,11 @@ public class Individual {
     private int dominatesCost(double otherCost) {
         if (this.getCost() < otherCost) {
             return 1;
-        } else if (this.getCost() == otherCost) {
+        }
+        else if (this.getCost() == otherCost) {
             return 0;
-        } else {
+        }
+        else {
             // Dominated
             return -1;
         }
@@ -361,9 +367,8 @@ public class Individual {
      */
 
     private void generateRandomRoute() {
-        // Create and shuffle the nsga.cities
+        // Create and shuffle the cities to create random DNA
         List<Integer> cities = Stream.iterate(1, n -> n + 1).limit(size).collect(Collectors.toList());
-
         Collections.shuffle(cities);
 
         // Add as chromosomes

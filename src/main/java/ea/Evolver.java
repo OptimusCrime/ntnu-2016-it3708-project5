@@ -396,6 +396,39 @@ public class Evolver {
         }*/
     }
 
+    public static ArrayList<Individual> getBestAndWorst(ArrayList<Individual> population) {
+        // Prepopulate
+        ArrayList<Individual> bestAndWorst = new ArrayList<>();
+        bestAndWorst.add(population.get(0)); // Best distance
+        bestAndWorst.add(population.get(0)); // Worst distance
+        bestAndWorst.add(population.get(0)); // Best cost
+        bestAndWorst.add(population.get(0)); // Worst cost
+
+        // Loop the population
+        for (Individual member : population) {
+            // Get the values
+            double distance = member.getDistance();
+            double cost = member.getCost();
+
+            // Check if we should swap out current worst/best
+            if (distance > bestAndWorst.get(0).getDistance()) {
+                bestAndWorst.set(0, member);
+            }
+            if (distance < bestAndWorst.get(1).getDistance()) {
+                bestAndWorst.set(1, member);
+            }
+            if (cost > bestAndWorst.get(2).getCost()) {
+                bestAndWorst.set(2, member);
+            }
+            if (cost < bestAndWorst.get(3).getCost()) {
+                bestAndWorst.set(3, member);
+            }
+        }
+
+        // Return the best and worst
+        return bestAndWorst;
+    }
+
     public int getGeneration() {
         return this.generation;
     }
