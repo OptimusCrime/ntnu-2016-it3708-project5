@@ -69,7 +69,7 @@ public class Evolver {
      */
 
     public boolean runGeneration() {
-        System.out.println("Size = " + childPool.size() + " & " + parentPool.size());
+        System.out.println("Generation #" + this.generation);
         if (this.generation < Settings.maxGeneration) {
             this.evolve();
 
@@ -372,8 +372,16 @@ public class Evolver {
      */
 
     private void logBestIndividual() {
+        for (Individual member : this.childPool) {
+            System.out.println(member);
+        }
+        System.out.println(" ");
+        System.out.println("---------------------------------");
+        System.out.println(" ");
+
+        /*
         // Get the first individual
-        ArrayList<Individual> bestIndividuals = new ArrayList<>(this.paretoFronts.get(0).getAllMembers());
+        //ArrayList<Individual> bestIndividuals = new ArrayList<>(this.paretoFronts.get(0).getAllMembers());
         //Collections.sort(bestIndividuals, Sorter.crowdingDistanceComparator());
         //bestIndividual = bestIndividuals.get(0);
 
@@ -381,7 +389,7 @@ public class Evolver {
 
         for (Individual individual : this.parentPool) {
             // Check if this individual is better than best
-        }
+        }*/
     }
 
     public ArrayList<ParetoFront> getParetoFronts() {

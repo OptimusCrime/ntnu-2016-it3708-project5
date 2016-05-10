@@ -145,22 +145,23 @@ public class Individual {
      */
 
     public void mutate() {
+        // Note: Probability FOR mutation is used, e.i. 1.0 is always mutate, 0.0 is never
         Random r = new Random();
         if (Settings.mutation < r.nextDouble()) {
             return;
         }
 
-        // Select two random nsga.cities to swap position
-        int swap_1 = getRandomChromosone();
-        int swap_2 = getRandomChromosone();
+        // Select random chromosome to swap
+        int swap1Index = getRandomChromosome();
+        int swap2Index = getRandomChromosome();
 
         // Store the citiIds
-        int swapper_1 = this.route[swap_1];
-        int swapper_2 = this.route[swap_2];
+        int swap1Value = this.route[swap1Index];
+        int swap2Value = this.route[swap2Index];
 
         // Do the swap
-        this.route[swap_1] = swapper_2;
-        this.route[swap_2] = swapper_1;
+        this.route[swap1Index] = swap2Value;
+        this.route[swap2Index] = swap1Value;
 
         // Reset all values
         this.reset();
@@ -168,14 +169,14 @@ public class Individual {
 
     /**
      * Crossover
+     *
      * @param other Individual to do crossover with
      * @return The new individuals
      */
 
     public Individual[] crossover(Individual other) {
+        // Note: Probability FOR crossover is used, e.i. 1.0 is always crossover, 0.0 is always clone
         Random r = new Random();
-
-        // No breeding - return copies of parents
         if (Settings.crossover < r.nextDouble()) {
             Individual[] noOffspring = new Individual[2];
             noOffspring[0] = new Individual(this.getRoute());
@@ -185,8 +186,8 @@ public class Individual {
 
         int crossover = r.nextInt(size - 2) + 1; // Random crossover from 1 to 46 (46+1 is exclusive)
 
-        int[] child1 = this.getRoute();
-        int[] child2 = other.getRoute();
+        int[] child1 = this.getRoute().clone();
+        int[] child2 = other.getRoute().clone();
 
         // First child
         for (int i = 0; i < crossover; i++) {
@@ -195,7 +196,6 @@ public class Individual {
             child1[i] = inNumber;
             child1 = cleanupCrossover(child1, inNumber, outNumber, i);
         }
-
 
         // Second child
         for (int j = 0; j < crossover; j++) {
@@ -208,6 +208,7 @@ public class Individual {
         Individual[] offspring = new Individual[2];
         offspring[0] = new Individual(child1);
         offspring[1] = new Individual(child2);
+
         return offspring;
 
     }
@@ -234,7 +235,7 @@ public class Individual {
         return dirty;
     }
 
-    private int getRandomChromosone() {
+    private int getRandomChromosome() {
         Random r = new Random();
         return r.nextInt((size - 1) + 1);
 

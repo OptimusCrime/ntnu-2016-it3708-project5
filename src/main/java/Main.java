@@ -117,6 +117,8 @@ public class Main {
             // Populate the dataset
             EventQueue.invokeLater(new Runnable() {
                 @Override public void run() {
+                    chart.removeLegend();
+
                     // Loop all the individuals
                     for (Individual member : evo.getChildren()) {
                         // Add current member to plot
