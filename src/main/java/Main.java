@@ -72,7 +72,12 @@ public class Main {
         this.createFrame();
 
         // Run stuff
-        this.run();
+        if (Settings.weirdPlotting) {
+            this.weirdPlotting();
+        }
+        else {
+            this.run();
+        }
     }
 
     /**
@@ -102,6 +107,11 @@ public class Main {
 
         // Fix some stuff
         XYPlot plot = this.allChart.getXYPlot();
+        plot.setRangeCrosshairVisible(false);
+        plot.setDomainCrosshairVisible(false);
+        plot.setBackgroundPaint(new Color(221, 221, 221));
+        plot.setDomainGridlinePaint(new Color(119, 119, 199));
+        plot.setRangeGridlinePaint(new Color(119, 119, 119));
         XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
         renderer.setBaseShapesVisible(true);
 
@@ -145,6 +155,11 @@ public class Main {
 
         // Fix some stuff
         XYPlot plot = this.frontChart.getXYPlot();
+        plot.setRangeCrosshairVisible(false);
+        plot.setDomainCrosshairVisible(false);
+        plot.setBackgroundPaint(new Color(221, 221, 221));
+        plot.setDomainGridlinePaint(new Color(119, 119, 199));
+        plot.setRangeGridlinePaint(new Color(119, 119, 119));
         XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
         renderer.setBaseShapesVisible(true);
 
@@ -228,6 +243,130 @@ public class Main {
             }
         });
         timer.start();
+    }
+
+    private void weirdPlotting() {
+
+        //
+        // FIRST RUN
+        //
+
+        this.evo = new Evolver();
+        this.evo.initialize();
+        this.evo.solve();
+
+        ArrayList<Individual> runOnePareto = new ArrayList<>(this.evo.getParetoFronts().get(0).getAllMembers());
+
+        //
+        // RUN TWO
+        //
+
+        Settings.populationSize = 1000;
+        Settings.maxGeneration = 500;
+        Settings.crossover = 0.8;
+        Settings.mutation = 0.5;
+        Settings.tournamentSize = 50;
+
+        this.evo = new Evolver();
+        this.evo.initialize();
+        this.evo.solve();
+
+        ArrayList<Individual> runTwoPareto = new ArrayList<>(this.evo.getParetoFronts().get(0).getAllMembers());
+
+        //
+        // RUN THREE
+        //
+
+        Settings.populationSize = 2000;
+        Settings.maxGeneration = 250;
+        Settings.crossover = 0.9;
+        Settings.mutation = 0.7;
+        Settings.tournamentSize = 100;
+
+        this.evo = new Evolver();
+        this.evo.initialize();
+        this.evo.solve();
+
+        ArrayList<Individual> runThreePareto = new ArrayList<>(this.evo.getParetoFronts().get(0).getAllMembers());
+
+        //
+        // PLOTTING
+        //
+
+        // The values
+        ArrayList<Individual>[] values = (ArrayList<Individual>[])new ArrayList[3];
+        values[0] = runOnePareto;
+        values[1] = runTwoPareto;
+        values[2] = runThreePareto;
+
+        // The series
+        XYSeries[] series = new XYSeries[3];
+        series[0] = frontPlotDataAll;
+        series[1] = frontPlotDataBest;
+        series[2] = frontPlotDataWorst;
+
+        // Used for scaling
+        double bestX = Double.MIN_VALUE;
+        double worstX = Double.MAX_VALUE;
+        double bestY = Double.MIN_VALUE;
+        double worstY = Double.MAX_VALUE;
+
+        System.out.println(runOnePareto.size());
+        System.out.println(runTwoPareto.size());
+
+        // Loop all the value lists
+        for (int i = 0; i < values.length; i++) {
+            // Loop all members of this value
+            for (Individual member : values[i]) {
+                series[i].add(new XYDataItem(member.getDistance(), member.getCost()));
+            }
+
+            // Get best and worst from the data set
+            ArrayList<Individual> bestAndWorst = Evolver.getBestAndWorst(values[i]);
+
+            // Calculate the values
+            double tempWorstX = Math.max(0, bestAndWorst.get(1).getDistance() - (bestAndWorst.get(1).getDistance() * 0.1));
+            double tempBestX = bestAndWorst.get(0).getDistance() * 1.1;
+
+            double tempWorstY = Math.max(0, bestAndWorst.get(3).getCost() - (bestAndWorst.get(3).getCost() * 0.1));
+            double tempBestY = bestAndWorst.get(2).getCost() * 1.1;
+
+            // Check if we should update the scaling
+            if (tempWorstX < worstX) {
+                worstX = tempWorstX;
+            }
+            if (tempBestX > bestX) {
+                bestX = tempBestX;
+            }
+
+            if (tempWorstY < worstY) {
+                worstY = tempWorstY;
+            }
+            if (tempBestY > bestY) {
+                bestY = tempBestY;
+            }
+
+        }
+
+        // Change colorz
+        frontChart.getXYPlot().getRenderer().setSeriesPaint(0, Color.BLUE); // All
+        frontChart.getXYPlot().getRenderer().setSeriesPaint(1, Color.GREEN); // Best
+        frontChart.getXYPlot().getRenderer().setSeriesPaint(2, Color.RED); // Worst
+
+        // Set range
+        NumberAxis frontDomainAxis = (NumberAxis) frontChart.getXYPlot().getDomainAxis();
+        frontDomainAxis.setRange(worstX, bestX);
+        NumberAxis frontRangeAxis = (NumberAxis) frontChart.getXYPlot().getRangeAxis();
+        frontRangeAxis.setRange(worstY, bestY);
+
+        // Change draw order
+        frontChart.getXYPlot().setDatasetRenderingOrder(DatasetRenderingOrder.REVERSE);
+
+        // Set the dataset
+        frontChartPanel.getChart().getXYPlot().setDataset(frontChart.getXYPlot().getDataset());
+
+        // Update the UI
+        frontChartPanel.updateUI();
     }
 
     /**
