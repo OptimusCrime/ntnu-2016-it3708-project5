@@ -216,7 +216,7 @@ public class Main {
         this.evo = new Evolver();
         this.evo.initialize();
 
-        Timer timer = new Timer(100, new ActionListener() {
+        Timer timer = new Timer(Settings.tick, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 tick();
