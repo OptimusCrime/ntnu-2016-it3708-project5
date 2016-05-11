@@ -158,11 +158,11 @@ public class Evolver {
      * Solve the problem
      */
 
-    private void solve() {
+    public void solve() {
         // Run n generations
         while (this.generation < Settings.maxGeneration) {
             // Evolve the current generation
-            this.evolve();
+            this.runGeneration();
         }
     }
 

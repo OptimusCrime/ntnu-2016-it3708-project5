@@ -30,7 +30,11 @@ public class Settings {
 
     // Refresh rate
     public static int tick = 100;
+
     // Remove duplicates
     public static boolean removeDuplicates = true;
+
+    // Turn on and off weird plotting
+    public static boolean weirdPlotting = false;
 }
 
