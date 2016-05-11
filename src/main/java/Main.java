@@ -30,6 +30,7 @@ public class Main {
     private JLabel generationLabel;
     private JLabel allCountLabel;
     private JLabel frontCountLabel;
+    private JLabel frontNumberCount;
 
     //private Timeline timeline;
     private boolean running;
@@ -181,12 +182,15 @@ public class Main {
         chartContainer.add(allChartPanel);
         chartContainer.add(frontChartPanel);
 
-        // Create label
+        // Create labels
         generationLabel = new JLabel("Generation: 0 / " + Settings.maxGeneration);
         generationLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         allCountLabel = new JLabel("Population Size: ");
         allCountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        frontNumberCount = new JLabel("Number of fronts: ");
+        frontNumberCount.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         frontCountLabel = new JLabel("Non Dominated Solutions: ");
         frontCountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -195,6 +199,7 @@ public class Main {
         outerContainer.setLayout(new BoxLayout(outerContainer, BoxLayout.Y_AXIS));
         outerContainer.add(generationLabel);
         outerContainer.add(allCountLabel);
+        outerContainer.add(frontNumberCount);
         outerContainer.add(frontCountLabel);
         outerContainer.add(chartContainer);
 
@@ -242,6 +247,7 @@ public class Main {
             // Update generation label
             generationLabel.setText("Generation: " + this.evo.getGeneration() + " / " + Settings.maxGeneration);
             allCountLabel.setText("Population Size: " + this.evo.getParents().size());
+            frontNumberCount.setText("Number of fronts: " + this.evo.getParetoFronts().size());
             frontCountLabel.setText("Non Dominated Solutions: " + this.evo.getParetoFronts().get(0).getSize());
 
             // Remove legends
