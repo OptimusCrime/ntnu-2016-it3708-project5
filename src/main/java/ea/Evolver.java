@@ -167,14 +167,14 @@ public class Evolver {
     }
 
     /**
-     *  Method that removes duplicates
+     * Method that removes duplicates
      */
 
     private void removeDups(ArrayList<Individual> population) {
         ArrayList<Individual> removees = new ArrayList<>();
 
-        for (Individual individual: population) {
-            if(individual.getCrowdingDistance() == 0.0) {
+        for (Individual individual : population) {
+            if (individual.getCrowdingDistance() == 0.0) {
                 removees.add(individual);
             }
         }
@@ -268,9 +268,20 @@ public class Evolver {
 
         // Loop until we have enough children
         while (children.size() < Settings.populationSize + duplicatesRemoves) {
+
+            Individual mother;
+            Individual father;
+
             // Select parents
-            Individual mother = selectParent(potentialParents);
-            Individual father = selectParent(potentialParents);
+            if (Settings.bestParentSelection) {
+                Individual[] parents = selectBestParent(potentialParents);
+                mother = parents[0];
+                father = parents[1];
+            } else {
+
+                mother = selectParent(potentialParents);
+                father = selectParent(potentialParents);
+            }
 
             // Create offspring
             Individual[] offspring = mother.crossover(father);
@@ -326,6 +337,32 @@ public class Evolver {
         }
         return parent;
 
+    }
+
+    /**
+     * Parent selection option 2
+     * Best values from both axises
+     */
+
+    private Individual[] selectBestParent(ArrayList<Individual> parents) {
+        ArrayList<Individual> candidates = new ArrayList<>(parents);
+        Collections.shuffle(candidates);
+
+        // Parent to be returned
+        Individual[] parent = new Individual[2];
+
+        // Create sublist of parents with tournament size
+        ArrayList<Individual> tournament = new ArrayList<>(candidates.subList(0, Math.min(parents.size(), Settings.tournamentSize)));
+
+        // Sort and get best distance
+        Collections.sort(tournament, Sorter.distanceComparator());
+        parent[0] = tournament.get(0);
+
+        // Sort and get best cost
+        Collections.sort(tournament, Sorter.costComparator());
+        parent[1] = tournament.get(1);
+
+        return parent;
     }
 
     /**
@@ -407,7 +444,7 @@ public class Evolver {
             costSorted.get(i).setCrowdingDistance(costCrowdingDistance);
         }
 
-        if (Settings.fitnessConstraint) {
+        if (Settings.removeDuplicates) {
 
             // Penalize solution that do not have unique fitness
             // Set crowding distance to 0.0 if fitness is not unique
@@ -484,7 +521,7 @@ public class Evolver {
         //
 
         // Remove duplicates
-        if(Settings.removeDuplicates) {
+        if (Settings.removeDuplicates) {
             this.removeDups(this.parentPool);
         }
 
