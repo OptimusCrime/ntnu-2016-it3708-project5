@@ -19,6 +19,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
 public class Main {
@@ -49,6 +51,9 @@ public class Main {
     private XYSeries frontPlotDataWorst;
     private JFreeChart frontChart;
 
+    // Pause
+    private boolean pause = false;
+
     /**
      * Main method
      *
@@ -74,8 +79,7 @@ public class Main {
         // Run stuff
         if (Settings.weirdPlotting) {
             this.weirdPlotting();
-        }
-        else {
+        } else {
             this.run();
         }
     }
@@ -179,6 +183,23 @@ public class Main {
     private void createFrame() {
         // Create the frame
         JFrame f = new JFrame();
+        f.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                // Toggle pause
+                pause = !pause;
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
         f.setTitle("Kristian Ekle & Thomas Gautvedt :: IT3708 :: Project 5");
         f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -239,7 +260,9 @@ public class Main {
         Timer timer = new Timer(Settings.tick, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                tick();
+                if (!pause) {
+                    tick();
+                }
             }
         });
         timer.start();
@@ -294,7 +317,7 @@ public class Main {
         //
 
         // The values
-        ArrayList<Individual>[] values = (ArrayList<Individual>[])new ArrayList[3];
+        ArrayList<Individual>[] values = (ArrayList<Individual>[]) new ArrayList[3];
         values[0] = runOnePareto;
         values[1] = runTwoPareto;
         values[2] = runThreePareto;
@@ -539,4 +562,5 @@ public class Main {
         // Return the dataset
         return dataset;
     }
+
 }
