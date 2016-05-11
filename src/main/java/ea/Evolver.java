@@ -18,6 +18,9 @@ public class Evolver {
     private HashMap<Double, Boolean> distanceMap;
     private HashMap<Double, Boolean> costMap;
 
+    // Remove duplicates
+    private int duplicatesRemoves = 0;
+
     // All time highest
     private double dist = Double.POSITIVE_INFINITY;
     private double cost = Double.POSITIVE_INFINITY;
@@ -164,6 +167,23 @@ public class Evolver {
     }
 
     /**
+     *  Method that removes duplicates
+     */
+
+    private void removeDups(ArrayList<Individual> population) {
+        ArrayList<Individual> removees = new ArrayList<>();
+
+        for (Individual individual: population) {
+            if(individual.getCrowdingDistance() == 0.0) {
+                removees.add(individual);
+            }
+        }
+
+        population.removeAll(removees);
+        this.duplicatesRemoves = removees.size();
+    }
+
+    /**
      * Implementation of the non-dominated-sort
      *
      * @param population Population to sort
@@ -247,7 +267,7 @@ public class Evolver {
         ArrayList<Individual> children = new ArrayList<>();
 
         // Loop until we have enough children
-        while (children.size() < Settings.populationSize) {
+        while (children.size() < Settings.populationSize + duplicatesRemoves) {
             // Select parents
             Individual mother = selectParent(potentialParents);
             Individual father = selectParent(potentialParents);
@@ -462,6 +482,11 @@ public class Evolver {
         //
         // PARENT SELECTION
         //
+
+        // Remove duplicates
+        if(Settings.removeDuplicates) {
+            this.removeDups(this.parentPool);
+        }
 
         // Select who gets to mate, and mate them
         this.parentSelectionAndBreeding();
