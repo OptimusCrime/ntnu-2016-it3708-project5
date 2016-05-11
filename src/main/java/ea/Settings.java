@@ -5,10 +5,10 @@ public class Settings {
     public static int cities = 48;
 
     // Population size
-    public static int populationSize = 1000;
+    public static int populationSize = 200;
 
     // Max number of generations
-    public static int maxGeneration = 1500;
+    public static int maxGeneration = 2000;
 
     // Chance for crossover
     public static double crossover = 0.9;
@@ -30,4 +30,7 @@ public class Settings {
 
     // Refresh rate
     public static int tick = 100;
+    // Remove duplicates
+    public static boolean removeDuplicates = true;
 }
+
